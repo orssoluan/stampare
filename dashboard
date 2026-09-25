@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAMPARE - Dashboard Executivo B2B</title>
+    
+    <!-- Fonts and Tailwind CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js and PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        stampare: {
+                            navy: '#00305C', 
+                            blue: '#3B82F6', 
+                            teal: '#0F766E', 
+                            light: '#F8FAFC', 
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #F8FAFC;
+            color: #1E293B;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #F1F5F9; 
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #CBD5E1; 
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8; 
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-active {
+            border-bottom: 3px solid #FFFFFF;
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+        .tab-inactive {
+            color: #94A3B8;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-inactive:hover {
+            color: #FFFFFF;
+            border-bottom: 3px solid #64748B;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1E3A8A;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased flex flex-col h-screen">
+
+    <header class="bg-stampare-navy shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo area -->
+                <div class="flex-shrink-0 flex items-center h-full py-2">
+                    <img src="https://stampare.com.br/wp-content/uploads/2026/01/logo-stampare-areia.webp" alt="STAMPARE" class="h-8 object-contain">
+                </div>
+                
+                <!-- Tabs -->
+                <nav class="flex space-x-8 h-full items-end" aria-label="Tabs">
+                    <button onclick="switchTab('d01')" id="btn-d01" class="tab-btn tab-active pb-4 px-1 text-sm">
+                        Analise RFM
+                    </button>
+                    <button onclick="switchTab('d02')" id="btn-d02" class="tab-btn tab-inactive pb-4 px-1 text-sm">
+                        Analise de risco
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- This overlay solves the CORS issue by allowing manual file upload -->
+    <div id="setup-overlay" class="fixed inset-0 bg-stampare-light bg-opacity-95 z-50 flex flex-col items-center justify-center rounded-xl p-6 backdrop-blur-sm">
+        <div id="setup-panel" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100 text-center">
+            <div class="bg-stampare-navy p-4 rounded-xl inline-block mb-4 shadow-inner">
+                <img src="https://stampare.com.br/wp-content/uploads/2026/01/logo-stampare-areia.webp" alt="STAMPARE" class="h-8 object-contain">
+            </div>
+            <h2 class="text-xl font-bold text-stampare-navy mb-2">Importar Bases de Dados</h2>
+            <p class="text-sm text-gray-500 mb-6">Para visualizar o dashboard, selecione os arquivos CSV correspondentes.</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">1. Base RFM (D01_RFM.csv)</label>
+                    <input type="file" id="file-d01" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-stampare-light file:text-stampare-navy hover:file:bg-gray-100 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">2. Base Atividade (D02_Atividade.csv)</label>
+                    <input type="file" id="file-d02" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-stampare-light file:text-stampare-navy hover:file:bg-gray-100 cursor-pointer">
+                </div>
+                <div id="upload-error" class="text-red-500 text-xs font-semibold hidden text-center mt-2">
+                    Por favor, selecione ambos os arquivos para continuar.
+                </div>
+                <button onclick="processUploadedFiles()" class="w-full py-3 bg-stampare-navy hover:bg-blue-900 text-white font-semibold rounded-lg transition mt-4">
+                    Processar e Abrir Dashboard
+                </button>
+            </div>
+            
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <button onclick="startMockData()" class="text-sm text-stampare-teal hover:underline font-medium">
+                    Ou testar com dados simulados
+                </button>
+            </div>
+        </div>
+        
+        <div id="loading-spinner" class="hidden flex-col items-center">
+            <div class="loader mb-4"></div>
+            <p class="text-stampare-navy font-medium text-lg">Processando dados...</p>
+        </div>
+    </div>
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- ========================================== -->
+            <!-- DASHBOARD 01: RFM, Receita e Tendências    -->
+            <!-- ========================================== -->
+            <div id="dashboard-01" class="block space-y-6">
+                
+                <!-- Filters Section -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row flex-wrap gap-4 items-end">
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Mercado</label>
+                        <select id="filter-d01-mercado" onchange="applyFiltersD01()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                            <option value="Todos">Todos os Mercados</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Pesquisar Cliente / ID</label>
+                        <input type="text" id="filter-d01-cliente" onkeyup="applyFiltersD01()" placeholder="Ex: 3M - SUMARÉ" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                    </div>
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tendência Gasto</label>
+                        <select id="filter-d01-tendencia" onchange="applyFiltersD01()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                            <option value="Todos">Todas as Tendências</option>
+                            <option value="Crescendo">Crescendo</option>
+                            <option value="Estável">Estável</option>
+                            <option value="Caindo">Caindo</option>
+                            <option value="Novo no período">Novo no período</option>
+                            <option value="Sem compras">Sem compras</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <button onclick="resetFiltersD01()" class="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition">
+                            Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-stampare-navy">
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total de Clientes</p>
+                        <h3 id="kpi-d01-clientes" class="text-2xl font-bold text-gray-900">0</h3>
+                        <p class="text-xs text-gray-400 mt-2">Na seleção atual</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-stampare-teal">
+                        <p class="text-sm font-medium text-gray-500 mb-1">Pedidos (Últimos 12m)</p>
+                        <h3 id="kpi-d01-gasto12m" class="text-2xl font-bold text-gray-900">R$ 0</h3>
+                        <p id="kpi-d01-var-gasto" class="text-xs font-medium mt-2">vs. 12m anteriores</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total de Pedidos (12m)</p>
+                        <h3 id="kpi-d01-pedidos" class="text-2xl font-bold text-gray-900">0</h3>
+                        <p class="text-xs text-gray-400 mt-2">Pedidos confirmados no período</p>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4">Tendências de Frequência e Gasto</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chartD01-trends"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4">Pedidos por mercado</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chartD01-mercadoGasto"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-2">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">Matriz RFM</h4>
+                                <p class="text-xs text-gray-500"><strong class="text-stampare-teal">Clique em uma bolha para filtrar a tela!</strong></p>
+                            </div>
+                        </div>
+                        <div class="h-[500px] relative cursor-pointer">
+                            <canvas id="chartD01-fxm"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-2">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4">Comparação Financeira</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chartD01-compare"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-wrap gap-3">
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-800">Detalhamento de Clientes</h4>
+                            <p class="text-xs text-gray-500" id="d01-table-info">Mostrando 0 registros</p>
+                            <p class="text-xs text-stampare-teal font-medium mt-1 hidden" id="d01-bubble-filter-indicator">
+                                Filtro Ativo: <span id="bubble-filter-text"></span> 
+                                <button onclick="clearBubbleFilter()" class="underline text-red-500 ml-2 hover:text-red-700">Remover Filtro</button>
+                            </p>
+                        </div>
+                        <button onclick="exportD01ToCSV()" class="px-4 py-2 bg-stampare-navy text-white text-xs font-semibold rounded-lg hover:bg-blue-900 transition flex items-center gap-2 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Baixar Planilha
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto table-container max-h-[400px]">
+                        <table class="min-w-full text-left text-sm whitespace-nowrap">
+                            <thead class="uppercase text-gray-500 bg-gray-50 sticky top-0 z-10 text-[11px] font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3">Cliente / ID</th>
+                                    <th class="px-4 py-3">Contato</th>
+                                    <th class="px-4 py-3">Mercado</th>
+                                    <th class="px-4 py-3">Último Pedido</th>
+                                    <th class="px-4 py-3 text-right">Gasto 12m</th>
+                                    <th class="px-4 py-3 text-center">Tend. Gasto</th>
+                                    <th class="px-4 py-3 text-center">Ped. 12m</th>
+                                    <th class="px-4 py-3 text-center">Código R-F-M</th>
+                                    <th class="px-4 py-3 text-center">Nota RFM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-d01-body" class="divide-y divide-gray-100 text-gray-700">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- DASHBOARD 02: Atividade e Risco            -->
+            <!-- ========================================== -->
+            <div id="dashboard-02" class="hidden space-y-6">
+                
+                <!-- Filters Section -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row flex-wrap gap-4 items-end">
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Mercado</label>
+                        <select id="filter-d02-mercado" onchange="applyFiltersD02()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                            <option value="Todos">Todos os Mercados</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Status de Atividade</label>
+                        <select id="filter-d02-status" onchange="applyFiltersD02()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                            <option value="Todos">Todos os Status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo recente">Inativo recente</option>
+                            <option value="Inativo antigo">Inativo antigo</option>
+                            <option value="Histórico insuficiente">Histórico insuficiente</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Pesquisar Cliente / ID</label>
+                        <input type="text" id="filter-d02-cliente" onkeyup="applyFiltersD02()" placeholder="Ex: 3M - SUMARÉ" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <button onclick="resetFiltersD02()" class="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition">
+                            Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-gray-800">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Total Analisado</p>
+                        <h3 id="kpi-d02-total" class="text-xl font-bold text-gray-900">0</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Ativos</p>
+                        <h3 id="kpi-d02-ativos" class="text-xl font-bold text-green-600">0</h3>
+                        <p id="kpi-d02-ativos-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-orange-500">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Inativo Recente</p>
+                        <h3 id="kpi-d02-recentes" class="text-xl font-bold text-orange-600">0</h3>
+                        <p id="kpi-d02-recentes-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Inativo Antigo</p>
+                        <h3 id="kpi-d02-antigos" class="text-xl font-bold text-red-600">0</h3>
+                        <p id="kpi-d02-antigos-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-gray-300">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Histórico Insuficiente</p>
+                        <h3 id="kpi-d02-insuf" class="text-xl font-bold text-gray-500">0</h3>
+                        <p class="text-[10px] text-gray-400 mt-1">&lt; 2 pedidos confirmados</p>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative lg:col-span-1">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4">Proporção de Status</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chartD02-status"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative lg:col-span-2">
+                        <h4 class="text-sm font-bold text-gray-800 mb-4">Status de Atividade por Mercado</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chartD02-mercado"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-3">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">Analise de troca de faixa</h4>
+                            </div>
+                        </div>
+                        <div class="h-80 relative">
+                            <canvas id="chartD02-scatter"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-wrap gap-3">
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-800">Detalhamento de Clientes</h4>
+                            <p class="text-xs text-gray-500" id="d02-table-info">Mostrando 0 registros</p>
+                        </div>
+                        <button onclick="exportD02ToCSV()" class="px-4 py-2 bg-stampare-navy text-white text-xs font-semibold rounded-lg hover:bg-blue-900 transition flex items-center gap-2 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Baixar Planilha
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto table-container max-h-[400px]">
+                        <table class="min-w-full text-left text-sm whitespace-nowrap">
+                            <thead class="uppercase text-gray-500 bg-gray-50 sticky top-0 z-10 text-[11px] font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Cliente / ID</th>
+                                    <th class="px-4 py-3">Contato</th>
+                                    <th class="px-4 py-3">Mercado</th>
+                                    <th class="px-4 py-3 text-center">Último Pedido</th>
+                                    <th class="px-4 py-3 text-right">Dias s/ Comprar</th>
+                                    <th class="px-4 py-3 text-right">Média Indiv. (Dias)</th>
+                                    <th class="px-4 py-3 text-right">Razão (Risco)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-d02-body" class="divide-y divide-gray-100 text-gray-700">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- GLOBAL STATE ---
+        const state = {
+            d01: { raw: [], filtered: [], activeBubble: null },
+            d02: { raw: [], filtered: [] },
+            markets: new Set(),
+            charts: {}
+        };
+
+        const colors = {
+            navy: '#00305C',
+            teal: '#0F766E',
+            green: '#10B981',
+            orange: '#F59E0B',
+            red: '#EF4444',
+            gray: '#9CA3AF',
+            slate: '#64748B',
+            blue: '#3B82F6'
+        };
+
+        // --- UTILS ---
+        const formatMoney = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        const formatPct = (val) => new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 1 }).format(val);
+        const formatNum = (val) => new Intl.NumberFormat('pt-BR').format(val);
+
+        function switchTab(tab) {
+            const btnD01 = document.getElementById('btn-d01');
+            const btnD02 = document.getElementById('btn-d02');
+            const viewD01 = document.getElementById('dashboard-01');
+            const viewD02 = document.getElementById('dashboard-02');
+
+            if (tab === 'd01') {
+                btnD01.className = 'tab-btn tab-active pb-4 px-1 text-sm';
+                btnD02.className = 'tab-btn tab-inactive pb-4 px-1 text-sm';
+                viewD01.classList.remove('hidden');
+                viewD02.classList.add('hidden');
+            } else {
+                btnD01.className = 'tab-btn tab-inactive pb-4 px-1 text-sm';
+                btnD02.className = 'tab-btn tab-active pb-4 px-1 text-sm';
+                viewD01.classList.add('hidden');
+                viewD02.classList.remove('hidden');
+            }
+        }
+
+        // --- FILE UPLOAD & PROCESSING ---
+        let processCount = 0;
+
+        function processUploadedFiles() {
+            const fileD01 = document.getElementById('file-d01').files[0];
+            const fileD02 = document.getElementById('file-d02').files[0];
+            const errorMsg = document.getElementById('upload-error');
+
+            if (!fileD01 || !fileD02) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            errorMsg.classList.add('hidden');
+            document.getElementById('setup-panel').classList.add('hidden');
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            document.getElementById('loading-spinner').classList.add('flex');
+
+            // Reset state
+            processCount = 0;
+            state.markets.clear();
+
+            Papa.parse(fileD01, { header: true, dynamicTyping: true, skipEmptyLines: true, 
+                complete: (res) => processData(res.data, 'd01') });
+            Papa.parse(fileD02, { header: true, dynamicTyping: true, skipEmptyLines: true, 
+                complete: (res) => processData(res.data, 'd02') });
+        }
+
+        function processData(data, type) {
+            // Clean up potentially problematic keys
+            const cleanData = data.map(row => {
+                let cleanRow = {};
+                for (let key in row) {
+                    cleanRow[key.trim()] = row[key];
+                }
+                return cleanRow;
+            });
+            
+            state[type].raw = cleanData;
+            state[type].filtered = cleanData;
+            
+            cleanData.forEach(row => {
+                if (row['Mercado']) state.markets.add(row['Mercado']);
+            });
+
+            checkInitComplete();
+        }
+
+        function checkInitComplete() {
+            processCount++;
+            if (processCount >= 2) {
+                populateMarketFilters();
+                applyFiltersD01();
+                applyFiltersD02();
+                // Hide overlay entirely
+                document.getElementById('setup-overlay').style.display = 'none';
+            }
+        }
+
+        function startMockData() {
+            document.getElementById('setup-panel').classList.add('hidden');
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            document.getElementById('loading-spinner').classList.add('flex');
+            
+            // Short delay to allow UI to update before heavy processing
+            setTimeout(generateMockData, 300);
+        }
+
+        function generateMockData() {
+            processCount = 0;
+            state.markets.clear();
+
+            const mercados = ['Indústria', 'Saúde', 'Educação', 'Varejo', 'Logística', 'Serviços Corporativos'];
+            // Realistic names array for search testing
+            const realNames = [
+                '3M - SUMARÉ', 'PETROBRAS', 'VALE S.A.', 'ITAÚ UNIBANCO', 'AMBEV', 
+                'WEG S.A.', 'GERDAU', 'EMBRAER', 'NATURA', 'KLABIN', 
+                'SUZANO', 'LOCALIZA', 'RAIA DROGASIL', 'HOSPITAL ALBERT EINSTEIN', 'VIVO'
+            ];
+            
+            const mockD01 = [];
+            const mockD02 = [];
+
+            for (let i = 0; i < 150; i++) {
+                const isNew = Math.random() > 0.9;
+                const market = mercados[Math.floor(Math.random() * mercados.length)];
+                // Pick a realistic name and add a random filial/number for uniqueness
+                const clientName = realNames[i % realNames.length] + (i >= realNames.length ? ` - Filial ${Math.floor(Math.random()*100)}` : '');
+                const cnpjDemo = `DEMO-${1000 + i}`;
+                
+                // D01 Base Logic
+                const diasUltimo = Math.floor(Math.random() * 400);
+                let R = diasUltimo <= 72 ? 5 : diasUltimo <= 145 ? 4 : diasUltimo <= 218 ? 3 : diasUltimo <= 292 ? 2 : 1;
+                
+                const ped12m = isNew ? Math.floor(Math.random() * 2) + 1 : Math.floor(Math.random() * 8);
+                let F = ped12m >= 5 ? 5 : ped12m === 4 ? 4 : ped12m === 3 ? 3 : ped12m === 2 ? 2 : 1;
+                
+                const gasto12m = ped12m * (500 + Math.random() * 5000);
+                let M = gasto12m > 20000 ? 5 : gasto12m > 10000 ? 4 : gasto12m > 5000 ? 3 : gasto12m > 2000 ? 2 : 1;
+                
+                const ped12mAnt = isNew ? 0 : ped12m + Math.floor(Math.random() * 5 - 2);
+                const gasto12mAnt = isNew ? 0 : gasto12m + (Math.random() * 10000 - 5000);
+                
+                const tendFreq = isNew ? 'Novo no período' : (ped12m === 0 && ped12mAnt === 0) ? 'Sem compras' : ped12m > ped12mAnt ? 'Crescendo' : ped12m < ped12mAnt ? 'Caindo' : 'Estável';
+                const tendGasto = isNew ? 'Novo no período' : (gasto12m === 0 && gasto12mAnt === 0) ? 'Sem compras' : gasto12m > gasto12mAnt ? 'Crescendo' : gasto12m < gasto12mAnt ? 'Caindo' : 'Estável';
+                
+                const notaRFM = Math.round((R + F + M) / 3);
+
+                const names = ['Ana Silva', 'Carlos Santos', 'Fernanda Lima', 'Roberto Alves', 'Mariana Costa', 'João Pedro', 'Beatriz Souza', 'Rafael Mendes', 'Camila Rocha', 'Lucas Martins'];
+                const comprador = names[Math.floor(Math.random() * names.length)];
+                const tel = `(11) 9${Math.floor(8000 + Math.random()*1999)}-${Math.floor(1000 + Math.random()*8999)}`;
+                const email = `${comprador.split(' ')[0].toLowerCase()}@${clientName.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '') || 'empresa'}.com.br`;
+
+                mockD01.push({
+                    'CNPJ matriz': cnpjDemo,
+                    'Cliente': clientName,
+                    'Comprador': comprador,
+                    'Telefone': tel,
+                    'Email': email,
+                    'Mercado': market,
+                    'Último pedido confirmado': `2026-${Math.floor(Math.random()*12+1).toString().padStart(2,'0')}-01`,
+                    'Dias desde último pedido': diasUltimo,
+                    'Pedidos últimos 12m': ped12m,
+                    'Pedidos 12m anteriores': Math.max(0, ped12mAnt),
+                    'Tendência frequência': tendFreq,
+                    'Gasto últimos 12m (R$)': gasto12m,
+                    'Gasto 12m anteriores (R$)': Math.max(0, gasto12mAnt),
+                    'Tendência gasto': tendGasto,
+                    'Nota R': R,
+                    'Nota F': F,
+                    'Nota M': M,
+                    'Código R-F-M': `${R}-${F}-${M}`,
+                    'Nota RFM': notaRFM
+                });
+
+                // D02 Base Logic
+                const pedHist = ped12m + Math.max(0, ped12mAnt) + Math.floor(Math.random() * 5);
+                const mediaIndiv = pedHist >= 2 ? Math.floor(30 + Math.random() * 150) : 0;
+                
+                let status = 'Histórico insuficiente';
+                if (pedHist >= 2) {
+                    if (diasUltimo <= mediaIndiv) status = 'Ativo';
+                    else if (diasUltimo <= 2 * mediaIndiv) status = 'Inativo recente';
+                    else status = 'Inativo antigo';
+                }
+
+                mockD02.push({
+                    'CNPJ matriz': cnpjDemo,
+                    'Cliente': clientName,
+                    'Comprador': comprador,
+                    'Telefone': tel,
+                    'Email': email,
+                    'Mercado': market,
+                    'Último pedido confirmado': `2026-${Math.floor(Math.random()*12+1).toString().padStart(2,'0')}-01`,
+                    'Dias sem comprar': diasUltimo,
+                    'Pedidos confirmados histórico': pedHist,
+                    'Média individual entre pedidos (dias)': mediaIndiv,
+                    'Status de atividade': status
+                });
+            }
+
+            processData(mockD01, 'd01');
+            processData(mockD02, 'd02');
+        }
+
+        function populateMarketFilters() {
+            const options = Array.from(state.markets).sort().map(m => `<option value="${m}">${m}</option>`).join('');
+            
+            // Clear and set to avoid duplicates on re-upload
+            const filterD01 = document.getElementById('filter-d01-mercado');
+            const filterD02 = document.getElementById('filter-d02-mercado');
+            
+            filterD01.innerHTML = '<option value="Todos">Todos os Mercados</option>' + options;
+            filterD02.innerHTML = '<option value="Todos">Todos os Mercados</option>' + options;
+        }
+
+        function destroyChart(id) {
+            if (state.charts[id]) {
+                state.charts[id].destroy();
+            }
+        }
+
+        function resetFiltersD01() {
+            document.getElementById('filter-d01-mercado').value = 'Todos';
+            document.getElementById('filter-d01-tendencia').value = 'Todos';
+            document.getElementById('filter-d01-cliente').value = '';
+            clearBubbleFilter(); // This calls applyFiltersD01() automatically
+        }
+
+        function clearBubbleFilter() {
+            state.d01.activeBubble = null;
+            document.getElementById('d01-bubble-filter-indicator').classList.add('hidden');
+            applyFiltersD01();
+        }
+
+        function applyFiltersD01() {
+            const mkt = document.getElementById('filter-d01-mercado').value;
+            const tend = document.getElementById('filter-d01-tendencia').value;
+            const search = document.getElementById('filter-d01-cliente').value.toLowerCase();
+
+            state.d01.filtered = state.d01.raw.filter(row => {
+                let pass = true;
+                if (mkt !== 'Todos' && row['Mercado'] !== mkt) pass = false;
+                if (tend !== 'Todos' && row['Tendência gasto'] !== tend) pass = false;
+                
+                if (state.d01.activeBubble) {
+                    if (row['Nota M'] !== state.d01.activeBubble.M || row['Nota F'] !== state.d01.activeBubble.F) {
+                        pass = false;
+                    }
+                }
+
+                if (search) {
+                    const clientName = (row['Cliente'] || '').toLowerCase();
+                    const clientId = (row['CNPJ matriz'] || '').toLowerCase();
+                    if (!clientName.includes(search) && !clientId.includes(search)) {
+                        pass = false;
+                    }
+                }
+                return pass;
+            });
+
+            updateDashboard01();
+        }
+
+        function updateDashboard01() {
+            const data = state.d01.filtered;
+            
+            const totalClients = data.length;
+            const gasto12m = data.reduce((sum, row) => sum + (row['Gasto últimos 12m (R$)'] || 0), 0);
+            const gastoAnt = data.reduce((sum, row) => sum + (row['Gasto 12m anteriores (R$)'] || 0), 0);
+            const varGasto = gastoAnt === 0 ? 0 : ((gasto12m - gastoAnt) / gastoAnt);
+            const totalPed = data.reduce((sum, row) => sum + (row['Pedidos últimos 12m'] || 0), 0);
+
+            document.getElementById('kpi-d01-clientes').innerText = formatNum(totalClients);
+            document.getElementById('kpi-d01-gasto12m').innerText = formatMoney(gasto12m);
+            document.getElementById('kpi-d01-pedidos').innerText = formatNum(totalPed);
+            
+            const varEl = document.getElementById('kpi-d01-var-gasto');
+            if(gastoAnt === 0) {
+                varEl.innerText = "vs. 12m anteriores: N/D";
+                varEl.className = "text-xs font-medium mt-2 text-gray-500";
+            } else {
+                varEl.innerText = `vs. 12m anteriores: ${varGasto > 0 ? '+' : ''}${formatPct(varGasto)}`;
+                varEl.className = `text-xs font-medium mt-2 ${varGasto >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+
+            renderTableD01(data);
+            renderChartD01_Mercado(data);
+            renderChartD01_FxM(data);
+            renderChartD01_Trends(data);
+            renderChartD01_Compare(gasto12m, gastoAnt);
+        }
+
+        function renderChartD01_Mercado(data) {
+            destroyChart('chartD01-mercadoGasto');
+            const mktSpend = {};
+            data.forEach(r => {
+                const m = r['Mercado'] || 'Outros';
+                mktSpend[m] = (mktSpend[m] || 0) + (r['Gasto últimos 12m (R$)'] || 0);
+            });
+            
+            const sorted = Object.entries(mktSpend).sort((a,b) => b[1]-a[1]).slice(0,6);
+
+            const ctx = document.getElementById('chartD01-mercadoGasto').getContext('2d');
+            state.charts['chartD01-mercadoGasto'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(i => i[0]),
+                    datasets: [{
+                        label: 'Gasto R$',
+                        data: sorted.map(i => i[1]),
+                        backgroundColor: colors.teal,
+                        borderRadius: 4
+                    }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderChartD01_FxM(data) {
+            destroyChart('chartD01-fxm');
+            const matrix = {};
+            data.forEach(r => {
+                const F = r['Nota F'];
+                const M = r['Nota M'];
+                if(F && M) {
+                    const key = `${M}-${F}`;
+                    matrix[key] = (matrix[key] || 0) + 1;
+                }
+            });
+
+            const bubbleData = Object.keys(matrix).map(k => {
+                const [m, f] = k.split('-');
+                return { x: parseInt(m), y: parseInt(f), r: Math.max(5, matrix[k] * 2) };
+            });
+
+            const ctx = document.getElementById('chartD01-fxm').getContext('2d');
+            state.charts['chartD01-fxm'] = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Clientes',
+                        data: bubbleData,
+                        backgroundColor: function(context) {
+                            const val = context.raw;
+                            if (!val) return colors.gray;
+                            const score = val.x + val.y;
+                            if (score >= 8) return 'rgba(16, 185, 129, 0.7)'; // Verde (Ótimo)
+                            if (score >= 6) return 'rgba(59, 130, 246, 0.7)'; // Azul (Bom)
+                            if (score >= 4) return 'rgba(245, 158, 11, 0.7)'; // Laranja (Atenção)
+                            return 'rgba(239, 68, 68, 0.7)'; // Vermelho (Risco)
+                        },
+                        borderColor: function(context) {
+                            const val = context.raw;
+                            if (!val) return colors.gray;
+                            const score = val.x + val.y;
+                            if (score >= 8) return '#10B981';
+                            if (score >= 6) return '#3B82F6';
+                            if (score >= 4) return '#F59E0B';
+                            return '#EF4444';
+                        },
+                        hoverBackgroundColor: function(context) {
+                            const val = context.raw;
+                            if (!val) return colors.gray;
+                            const score = val.x + val.y;
+                            if (score >= 8) return 'rgba(16, 185, 129, 1)';
+                            if (score >= 6) return 'rgba(59, 130, 246, 1)';
+                            if (score >= 4) return 'rgba(245, 158, 11, 1)';
+                            return 'rgba(239, 68, 68, 1)';
+                        }
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    onClick: (e, elements, chart) => {
+                        if (elements && elements.length > 0) {
+                            const dataPoint = chart.data.datasets[0].data[elements[0].index];
+                            state.d01.activeBubble = { M: dataPoint.x, F: dataPoint.y };
+                            document.getElementById('d01-bubble-filter-indicator').classList.remove('hidden');
+                            document.getElementById('bubble-filter-text').innerText = `Monetário ${dataPoint.x}, Frequência ${dataPoint.y}`;
+                            applyFiltersD01();
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Nota Monetário (M)' }, min: 0.5, max: 5.5, ticks: {stepSize: 1} },
+                        y: { title: { display: true, text: 'Nota Frequência (F)' }, min: 0.5, max: 5.5, ticks: {stepSize: 1} }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const count = matrix[`${ctx.raw.x}-${ctx.raw.y}`];
+                                    return `M${ctx.raw.x} / F${ctx.raw.y}: ${count} clientes`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChartD01_Trends(data) {
+            destroyChart('chartD01-trends');
+            const cats = ['Crescendo', 'Estável', 'Caindo', 'Novo no período', 'Sem compras'];
+            const freq = {Crescendo:0, Estável:0, Caindo:0, 'Novo no período':0, 'Sem compras':0};
+            const gasto = {Crescendo:0, Estável:0, Caindo:0, 'Novo no período':0, 'Sem compras':0};
+
+            data.forEach(r => {
+                if(freq[r['Tendência frequência']] !== undefined) freq[r['Tendência frequência']]++;
+                if(gasto[r['Tendência gasto']] !== undefined) gasto[r['Tendência gasto']]++;
+            });
+
+            const ctx = document.getElementById('chartD01-trends').getContext('2d');
+            state.charts['chartD01-trends'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: cats,
+                    datasets: [
+                        { label: 'Freq. de Pedidos', data: cats.map(c => freq[c]), backgroundColor: colors.blue, borderRadius: 2 },
+                        { label: 'Gasto R$', data: cats.map(c => gasto[c]), backgroundColor: colors.teal, borderRadius: 2 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function renderChartD01_Compare(g12, gAnt) {
+            destroyChart('chartD01-compare');
+            const ctx = document.getElementById('chartD01-compare').getContext('2d');
+            state.charts['chartD01-compare'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['12m Anteriores', 'Últimos 12m'],
+                    datasets: [{
+                        label: 'Gasto Total (R$)',
+                        data: [gAnt, g12],
+                        backgroundColor: [colors.slate, colors.navy],
+                        borderRadius: 4
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderTableD01(data) {
+            const tbody = document.getElementById('table-d01-body');
+            document.getElementById('d01-table-info').innerText = `Mostrando ${data.length} registros`;
+            
+            const sorted = [...data].sort((a,b) => (b['Gasto últimos 12m (R$)']||0) - (a['Gasto últimos 12m (R$)']||0)).slice(0, 50);
+            
+            let html = '';
+            sorted.forEach(row => {
+                const tendClass = row['Tendência gasto'] === 'Crescendo' ? 'text-green-600 font-medium' : row['Tendência gasto'] === 'Caindo' ? 'text-red-600 font-medium' : 'text-gray-500';
+                
+                const comp = row['Comprador'] || '-';
+                const email = row['Email'] || '-';
+                const tel = row['Telefone'] || '-';
+
+                html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">${row['Cliente'] || '-'}</div>
+                            <div class="text-[10px] text-gray-400">${row['CNPJ matriz']}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-800 text-xs">${comp}</div>
+                            <div class="text-[10px] text-gray-500">${tel} <br> ${email}</div>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-600">${row['Mercado'] || '-'}</td>
+                        <td class="px-4 py-3 text-xs text-gray-600">${row['Último pedido confirmado'] || '-'}</td>
+                        <td class="px-4 py-3 text-right font-medium text-gray-900">${formatMoney(row['Gasto últimos 12m (R$)'])}</td>
+                        <td class="px-4 py-3 text-center text-xs ${tendClass}">${row['Tendência gasto'] || '-'}</td>
+                        <td class="px-4 py-3 text-center text-xs text-gray-600">${row['Pedidos últimos 12m'] || 0}</td>
+                        <td class="px-4 py-3 text-center text-xs font-mono bg-gray-100 rounded">${row['Código R-F-M'] || '-'}</td>
+                        <td class="px-4 py-3 text-center font-bold text-stampare-navy">${row['Nota RFM'] || '-'}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function exportD01ToCSV() {
+            if (!state.d01.filtered || state.d01.filtered.length === 0) return;
+            
+            const exportData = state.d01.filtered.map(r => ({
+                'ID': r['CNPJ matriz'],
+                'Cliente': r['Cliente'],
+                'Comprador': r['Comprador'] || '',
+                'Telefone': r['Telefone'] || '',
+                'Email': r['Email'] || '',
+                'Mercado': r['Mercado'],
+                'Último Pedido': r['Último pedido confirmado'],
+                'Dias sem comprar': r['Dias desde último pedido'],
+                'Pedidos 12m': r['Pedidos últimos 12m'],
+                'Gasto 12m (R$)': r['Gasto últimos 12m (R$)'],
+                'Tendência Gasto': r['Tendência gasto'],
+                'Nota R': r['Nota R'],
+                'Nota F': r['Nota F'],
+                'Nota M': r['Nota M'],
+                'Código RFM': r['Código R-F-M'],
+                'Nota Final': r['Nota RFM']
+            }));
+
+            // Adiciona BOM (Byte Order Mark) para o Excel abrir caracteres latinos/acentos corretamente
+            const csv = Papa.unparse(exportData);
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' }); 
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'STAMPARE_Analise_RFM.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function resetFiltersD02() {
+            document.getElementById('filter-d02-mercado').value = 'Todos';
+            document.getElementById('filter-d02-status').value = 'Todos';
+            document.getElementById('filter-d02-cliente').value = '';
+            applyFiltersD02();
+        }
+
+        function applyFiltersD02() {
+            const mkt = document.getElementById('filter-d02-mercado').value;
+            const status = document.getElementById('filter-d02-status').value;
+            const search = document.getElementById('filter-d02-cliente').value.toLowerCase();
+
+            state.d02.filtered = state.d02.raw.filter(row => {
+                let pass = true;
+                if (mkt !== 'Todos' && row['Mercado'] !== mkt) pass = false;
+                if (status !== 'Todos' && row['Status de atividade'] !== status) pass = false;
+                
+                if (search) {
+                    const clientName = (row['Cliente'] || '').toLowerCase();
+                    const clientId = (row['CNPJ matriz'] || '').toLowerCase();
+                    if (!clientName.includes(search) && !clientId.includes(search)) {
+                        pass = false;
+                    }
+                }
+                return pass;
+            });
+
+            updateDashboard02();
+        }
+
+        function updateDashboard02() {
+            const data = state.d02.filtered;
+            
+            const total = data.length;
+            const ativos = data.filter(r => r['Status de atividade'] === 'Ativo').length;
+            const recentes = data.filter(r => r['Status de atividade'] === 'Inativo recente').length;
+            const antigos = data.filter(r => r['Status de atividade'] === 'Inativo antigo').length;
+            const insuf = data.filter(r => r['Status de atividade'] === 'Histórico insuficiente').length;
+            const confiavel = total - insuf;
+
+            document.getElementById('kpi-d02-total').innerText = formatNum(total);
+            document.getElementById('kpi-d02-ativos').innerText = formatNum(ativos);
+            document.getElementById('kpi-d02-recentes').innerText = formatNum(recentes);
+            document.getElementById('kpi-d02-antigos').innerText = formatNum(antigos);
+            document.getElementById('kpi-d02-insuf').innerText = formatNum(insuf);
+
+            document.getElementById('kpi-d02-ativos-pct').innerText = confiavel > 0 ? `${formatPct(ativos/confiavel)} do total confiável` : '0%';
+            document.getElementById('kpi-d02-recentes-pct').innerText = confiavel > 0 ? `${formatPct(recentes/confiavel)} do total confiável` : '0%';
+            document.getElementById('kpi-d02-antigos-pct').innerText = confiavel > 0 ? `${formatPct(antigos/confiavel)} do total confiável` : '0%';
+
+            renderChartD02_Status(ativos, recentes, antigos, insuf);
+            renderChartD02_Mercado(data);
+            renderChartD02_Scatter(data);
+            renderTableD02(data);
+        }
+
+        function renderChartD02_Status(a, r, an, i) {
+            destroyChart('chartD02-status');
+            const ctx = document.getElementById('chartD02-status').getContext('2d');
+            state.charts['chartD02-status'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ativo', 'Inativo Recente', 'Inativo Antigo', 'Histórico Insuficiente'],
+                    datasets: [{
+                        data: [a, r, an, i],
+                        backgroundColor: [colors.green, colors.orange, colors.red, colors.gray],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function renderChartD02_Mercado(data) {
+            destroyChart('chartD02-mercado');
+            const mktObj = {};
+            data.forEach(r => {
+                const m = r['Mercado'] || 'Outros';
+                if(!mktObj[m]) mktObj[m] = { Ativo:0, 'Inativo recente':0, 'Inativo antigo':0, 'Histórico insuficiente':0 };
+                const st = r['Status de atividade'];
+                if(mktObj[m][st] !== undefined) mktObj[m][st]++;
+            });
+
+            const labels = Object.keys(mktObj);
+            const datasetA = labels.map(l => mktObj[l]['Ativo']);
+            const datasetR = labels.map(l => mktObj[l]['Inativo recente']);
+            const datasetAn = labels.map(l => mktObj[l]['Inativo antigo']);
+
+            const ctx = document.getElementById('chartD02-mercado').getContext('2d');
+            state.charts['chartD02-mercado'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Ativo', data: datasetA, backgroundColor: colors.green },
+                        { label: 'Inat. Recente', data: datasetR, backgroundColor: colors.orange },
+                        { label: 'Inat. Antigo', data: datasetAn, backgroundColor: colors.red }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: { x: { stacked: true }, y: { stacked: true } }
+                }
+            });
+        }
+
+        function renderChartD02_Scatter(data) {
+            destroyChart('chartD02-scatter');
+            
+            const validData = data.filter(r => r['Status de atividade'] !== 'Histórico insuficiente');
+            
+            const pointsA = [];
+            const pointsR = [];
+            const pointsAn = [];
+            let maxMedia = 10;
+
+            validData.forEach(r => {
+                const x = r['Média individual entre pedidos (dias)'] || 0;
+                const y = r['Dias sem comprar'] || 0;
+                if(x > maxMedia) maxMedia = x;
+
+                const pt = {x: x, y: y, raw: r};
+                if(r['Status de atividade'] === 'Ativo') pointsA.push(pt);
+                else if(r['Status de atividade'] === 'Inativo recente') pointsR.push(pt);
+                else pointsAn.push(pt);
+            });
+
+            const line1 = [{x:0, y:0}, {x:maxMedia, y:maxMedia}];
+            const line2 = [{x:0, y:0}, {x:maxMedia, y:maxMedia*2}];
+
+            const ctx = document.getElementById('chartD02-scatter').getContext('2d');
+            state.charts['chartD02-scatter'] = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Ativo', data: pointsA, backgroundColor: colors.green },
+                        { label: 'Inat. Recente', data: pointsR, backgroundColor: colors.orange },
+                        { label: 'Inat. Antigo', data: pointsAn, backgroundColor: colors.red },
+                        { label: 'L1: Y=X', data: line1, type: 'line', borderColor: '#CBD5E1', borderDash: [5,5], pointRadius: 0, fill: false },
+                        { label: 'L2: Y=2X', data: line2, type: 'line', borderColor: '#94A3B8', borderDash: [5,5], pointRadius: 0, fill: false }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Média Individual de Compra (Dias)' } },
+                        y: { title: { display: true, text: 'Dias Sem Comprar' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if(ctx.datasetIndex >= 3) return ''; 
+                                    const row = ctx.raw.raw;
+                                    return `${row['Cliente']}: ${ctx.raw.y} dias sem comprar (Média: ${ctx.raw.x})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTableD02(data) {
+            const tbody = document.getElementById('table-d02-body');
+            document.getElementById('d02-table-info').innerText = `Mostrando ${data.length} registros`;
+            
+            const orderMap = {'Inativo antigo': 1, 'Inativo recente': 2, 'Ativo': 3, 'Histórico insuficiente': 4};
+            
+            const sorted = [...data].sort((a,b) => {
+                const s1 = orderMap[a['Status de atividade']] || 9;
+                const s2 = orderMap[b['Status de atividade']] || 9;
+                if(s1 !== s2) return s1 - s2;
+                
+                const m1 = a['Média individual entre pedidos (dias)'] || 1;
+                const m2 = b['Média individual entre pedidos (dias)'] || 1;
+                const r1 = (a['Dias sem comprar'] || 0) / m1;
+                const r2 = (b['Dias sem comprar'] || 0) / m2;
+                return r2 - r1;
+            }).slice(0, 50);
+            
+            let html = '';
+            sorted.forEach(row => {
+                const st = row['Status de atividade'];
+                const stColor = st === 'Ativo' ? 'bg-green-100 text-green-800' : 
+                                st === 'Inativo recente' ? 'bg-orange-100 text-orange-800' : 
+                                st === 'Inativo antigo' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600';
+                
+                const dias = row['Dias sem comprar'] || 0;
+                const media = row['Média individual entre pedidos (dias)'] || 0;
+                let razao = 'N/A';
+                if(st !== 'Histórico insuficiente' && media > 0) {
+                    razao = (dias / media).toFixed(2) + 'x';
+                }
+
+                const comp = row['Comprador'] || '-';
+                const email = row['Email'] || '-';
+                const tel = row['Telefone'] || '-';
+
+                html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 text-xs">
+                            <span class="px-2 py-1 rounded-full font-medium ${stColor}">${st}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">${row['Cliente'] || '-'}</div>
+                            <div class="text-[10px] text-gray-400">${row['CNPJ matriz']}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-800 text-xs">${comp}</div>
+                            <div class="text-[10px] text-gray-500">${tel} <br> ${email}</div>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-600">${row['Mercado'] || '-'}</td>
+                        <td class="px-4 py-3 text-center text-xs text-gray-600">${row['Último pedido confirmado'] || '-'}</td>
+                        <td class="px-4 py-3 text-right font-medium text-gray-900">${dias}</td>
+                        <td class="px-4 py-3 text-right text-xs text-gray-600">${media > 0 ? media : 'N/A'}</td>
+                        <td class="px-4 py-3 text-right text-xs font-mono bg-gray-50">${razao}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function exportD02ToCSV() {
+            if (!state.d02.filtered || state.d02.filtered.length === 0) return;
+            
+            const exportData = state.d02.filtered.map(r => ({
+                'ID': r['CNPJ matriz'],
+                'Cliente': r['Cliente'],
+                'Comprador': r['Comprador'] || '',
+                'Telefone': r['Telefone'] || '',
+                'Email': r['Email'] || '',
+                'Status de atividade': r['Status de atividade'],
+                'Mercado': r['Mercado'],
+                'Último Pedido': r['Último pedido confirmado'],
+                'Dias sem comprar': r['Dias sem comprar'],
+                'Histórico Pedidos': r['Pedidos confirmados histórico'],
+                'Média Indiv. (dias)': r['Média individual entre pedidos (dias)']
+            }));
+
+            // Adiciona BOM (Byte Order Mark) para o Excel abrir caracteres latinos/acentos corretamente
+            const csv = Papa.unparse(exportData);
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' }); 
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'STAMPARE_Analise_Risco.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
+</body>
+</html>
