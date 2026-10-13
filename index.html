@@ -1,19 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STAMPARE - Dashboard Executivo B2B</title>
-    
-    <!-- Fonts and Tailwind CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Entrega Final - Stampare & V4 Company</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Chart.js and PapaParse -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    
-    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
@@ -22,1167 +19,986 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        stampare: {
-                            navy: '#00305C', 
-                            blue: '#3B82F6', 
-                            teal: '#0F766E', 
-                            light: '#F8FAFC', 
+                        brand: {
+                            primary: '#00305C',
+                            secondary: '#DDBD8E',
+                            tertiary: '#D5D4D9',
+                            dark: '#0a0a0a',
+                            darker: '#121212',
+                            panel: '#1f2937',
+                            v4red: '#E50914'
                         }
                     }
                 }
             }
         }
     </script>
-    
+
     <style>
         body {
-            background-color: #F8FAFC;
-            color: #1E293B;
-            margin: 0;
-            padding: 0;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
         
-        .table-container::-webkit-scrollbar {
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
             width: 8px;
-            height: 8px;
         }
-        .table-container::-webkit-scrollbar-track {
-            background: #F1F5F9; 
+        ::-webkit-scrollbar-track {
+            background: #121212; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00305C; 
             border-radius: 4px;
         }
-        .table-container::-webkit-scrollbar-thumb {
-            background: #CBD5E1; 
-            border-radius: 4px;
-        }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8; 
+        ::-webkit-scrollbar-thumb:hover {
+            background: #DDBD8E; 
         }
 
-        .tab-btn {
-            transition: all 0.2s ease-in-out;
+        /* Timeline Styles */
+        .timeline-container {
+            position: relative;
         }
-        .tab-active {
-            border-bottom: 3px solid #FFFFFF;
-            color: #FFFFFF;
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background-color: #1f2937;
+            border-radius: 2px;
+        }
+        @media (max-width: 768px) {
+            .timeline-container::before {
+                left: 20px;
+            }
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(221, 189, 142, 0.1);
+        }
+
+        /* Image Fallback utility */
+        .img-cover {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Gantt Chart Custom Variables adapted for Dark Mode */
+        .gantt-wrapper {
+            --brand-primary: #DDBD8E; 
+            --primary: #DDBD8E;        
+            --header-bg: #00305C;
+            --text-main: #f3f4f6;
+            --text-light: #9ca3af;
+            --bg-page: transparent;
+            --bg-container: #111827;
+            --border-color: #374151;
+            --cell-bg: #1f2937;
+            --topic-bg: #111827;
+        }
+        
+        .gantt-chart {
+            display: grid;
+            grid-template-columns: 280px 1fr 1fr 1fr 1fr 1fr 1fr;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .gantt-header {
+            background-color: var(--header-bg);
+            color: #ffffff;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .gantt-header:last-child { border-right: none; }
+        .gantt-header.topic { text-align: left; }
+        .gantt-cell {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            min-height: 60px;
+            background-color: var(--cell-bg);
+        }
+        .gantt-cell:nth-child(7n) { border-right: none; }
+        .topic-cell {
             font-weight: 600;
+            color: var(--brand-primary);
+            background-color: var(--topic-bg);
+            font-size: 0.95rem;
         }
-        .tab-inactive {
-            color: #94A3B8;
-            border-bottom: 3px solid transparent;
+        .gantt-bar {
+            background-color: var(--primary);
+            height: 36px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(221, 189, 142, 0.1);
         }
-        .tab-inactive:hover {
-            color: #FFFFFF;
-            border-bottom: 3px solid #64748B;
+        .gantt-bar:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(221, 189, 142, 0.4);
+            background-color: #cca877; 
+        }
+        @media (max-width: 900px) {
+            .gantt-chart {
+                grid-template-columns: 150px 1fr 1fr 1fr 1fr 1fr 1fr;
+            }
+            .gantt-header { font-size: 0.75rem; padding: 10px 5px; }
+            .topic-cell { font-size: 0.85rem; }
         }
 
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1E3A8A;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .modal-content {
+            background-color: #1f2937;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #374151;
+            animation: modalFadeIn 0.3s ease;
         }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: #DDBD8E; }
+
+        #imageModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+        #imageModalContent {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            animation: modalFadeIn 0.3s ease;
+        }
+        #imageModalClose {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            cursor: pointer;
+            color: #fff;
+            transition: color 0.2s;
+            z-index: 2010;
+        }
+        #imageModalClose:hover { color: #DDBD8E; }
+        
     </style>
 </head>
-<body class="font-sans antialiased flex flex-col h-screen">
+<body class="antialiased">
 
-    <header class="bg-stampare-navy shadow-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo area -->
-                <div class="flex-shrink-0 flex items-center h-full py-2">
-                    <img src="https://stampare.com.br/wp-content/uploads/2026/01/logo-stampare-areia.webp" alt="STAMPARE" class="h-8 object-contain">
-                </div>
-                
-                <!-- Tabs -->
-                <nav class="flex space-x-8 h-full items-end" aria-label="Tabs">
-                    <button onclick="switchTab('d01')" id="btn-d01" class="tab-btn tab-active pb-4 px-1 text-sm">
-                        Analise RFM
-                    </button>
-                    <button onclick="switchTab('d02')" id="btn-d02" class="tab-btn tab-inactive pb-4 px-1 text-sm">
-                        Analise de risco
-                    </button>
-                </nav>
+    <!-- HEADER -->
+    <header class="fixed top-0 w-full z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-brand-primary/40 shadow-lg transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="w-1/3"></div> <!-- Spacer for centering -->
+            <div class="w-1/3 flex justify-center">
+                <img src="https://stampare.com.br/wp-content/uploads/2026/01/logo-stampare-areia.webp" 
+                     onerror="this.src='https://placehold.co/200x60/00305C/DDBD8E?text=STAMPARE'" 
+                     class="h-10 md:h-14 object-contain" alt="Stampare Logo">
+            </div>
+            <div class="w-1/3 flex justify-end">
+                <img src="https://brand.v4company.com/_next/image?url=%2Fimages%2Flogos%2Fsimbolo-company.webp&w=256&q=75" 
+                     onerror="this.src='https://placehold.co/100x40/000000/FFFFFF?text=V4'" 
+                     class="h-8 md:h-10 object-contain brightness-0 invert" alt="V4 Company Logo">
             </div>
         </div>
     </header>
 
-    <!-- This overlay solves the CORS issue by allowing manual file upload -->
-    <div id="setup-overlay" class="fixed inset-0 bg-stampare-light bg-opacity-95 z-50 flex flex-col items-center justify-center rounded-xl p-6 backdrop-blur-sm">
-        <div id="setup-panel" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100 text-center">
-            <div class="bg-stampare-navy p-4 rounded-xl inline-block mb-4 shadow-inner">
-                <img src="https://stampare.com.br/wp-content/uploads/2026/01/logo-stampare-areia.webp" alt="STAMPARE" class="h-8 object-contain">
-            </div>
-            <h2 class="text-xl font-bold text-stampare-navy mb-2">Importar Bases de Dados</h2>
-            <p class="text-sm text-gray-500 mb-6">Para visualizar o dashboard, selecione os arquivos CSV correspondentes.</p>
-            
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">1. Base RFM (D01_RFM.csv)</label>
-                    <input type="file" id="file-d01" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-stampare-light file:text-stampare-navy hover:file:bg-gray-100 cursor-pointer">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">2. Base Atividade (D02_Atividade.csv)</label>
-                    <input type="file" id="file-d02" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-stampare-light file:text-stampare-navy hover:file:bg-gray-100 cursor-pointer">
-                </div>
-                <div id="upload-error" class="text-red-500 text-xs font-semibold hidden text-center mt-2">
-                    Por favor, selecione ambos os arquivos para continuar.
-                </div>
-                <button onclick="processUploadedFiles()" class="w-full py-3 bg-stampare-navy hover:bg-blue-900 text-white font-semibold rounded-lg transition mt-4">
-                    Processar e Abrir Dashboard
-                </button>
-            </div>
-            
-            <div class="mt-6 pt-6 border-t border-gray-100">
-                <button onclick="startMockData()" class="text-sm text-stampare-teal hover:underline font-medium">
-                    Ou testar com dados simulados
-                </button>
+    <!-- SESSÃO 01: Hero -->
+    <section class="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#00305C]">
+        <!-- Canvas for Animation -->
+        <canvas id="hero-canvas" class="absolute inset-0 z-0 opacity-100"></canvas>
+        
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#00305C]/10 to-[#00305C]"></div>
+
+        <div class="z-10 text-center px-6 max-w-4xl mt-16 animate-fade-in-up relative pointer-events-none">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight drop-shadow-lg pointer-events-auto">
+                Entrega Final
+            </h1>
+            <h2 class="text-2xl md:text-4xl text-brand-secondary font-light drop-shadow-md pointer-events-auto">
+                Diagnóstico e Planejamento de Marketing e Vendas
+            </h2>
+            <div class="mt-12 pointer-events-auto">
+                <a href="#etapas" class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary text-white hover:bg-brand-secondary hover:text-[#00305C] transition-all duration-300 shadow-[0_0_20px_rgba(221,189,142,0.4)] border border-brand-secondary/50">
+                    <i class="fas fa-chevron-down text-xl"></i>
+                </a>
             </div>
         </div>
-        
-        <div id="loading-spinner" class="hidden flex-col items-center">
-            <div class="loader mb-4"></div>
-            <p class="text-stampare-navy font-medium text-lg">Processando dados...</p>
+    </section>
+
+    <!-- SESSÃO 02: Etapas de Estudo -->
+    <section id="etapas" class="py-24 bg-[#111827] relative border-t border-gray-800">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Etapas de Estudo Desse Projeto</h2>
+                <div class="w-24 h-1 bg-brand-secondary mx-auto rounded-full"></div>
+            </div>
+
+            <div class="timeline-container relative w-full pt-10 pb-10">
+                
+                <!-- Semana 1 -->
+                <div class="flex flex-col md:flex-row items-center w-full mb-12 md:mb-8 relative z-10">
+                    <div class="hidden md:block md:w-1/2 pr-8 text-right">
+                        <h3 class="text-xl font-bold text-brand-tertiary">Semana 1</h3>
+                    </div>
+                    <div class="absolute left-[20px] md:left-1/2 transform md:-translate-x-1/2 w-10 h-10 rounded-full bg-brand-primary border-4 border-[#111827] flex items-center justify-center shadow-lg">
+                        <i class="fas fa-flag text-white text-sm"></i>
+                    </div>
+                    <div class="w-full md:w-1/2 pl-16 md:pl-8">
+                        <div class="glass-panel p-6 rounded-xl hover:-translate-y-1 transition-transform duration-300">
+                            <h3 class="text-xl font-bold text-brand-tertiary md:hidden mb-2">Semana 1</h3>
+                            <p class="text-lg text-white font-medium">Kick-Off e Oferta Principal</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semana 2 -->
+                <div class="flex flex-col md:flex-row items-center justify-end w-full mb-12 md:mb-8 relative z-10">
+                    <div class="w-full md:w-1/2 pl-16 md:pr-8 md:pl-0 md:text-right order-2 md:order-1">
+                        <div class="glass-panel p-6 rounded-xl hover:-translate-y-1 transition-transform duration-300">
+                            <h3 class="text-xl font-bold text-brand-tertiary md:hidden mb-2">Semana 2</h3>
+                            <p class="text-lg text-white font-medium">Pesquisa de Mercado & Posicionamento</p>
+                        </div>
+                    </div>
+                    <div class="absolute left-[20px] md:left-1/2 transform md:-translate-x-1/2 w-10 h-10 rounded-full bg-brand-primary border-4 border-[#111827] flex items-center justify-center shadow-lg order-1 md:order-2">
+                        <i class="fas fa-search text-white text-sm"></i>
+                    </div>
+                    <div class="hidden md:block md:w-1/2 pl-8 text-left order-3">
+                        <h3 class="text-xl font-bold text-brand-tertiary">Semana 2</h3>
+                    </div>
+                </div>
+
+                <!-- Semana 3 & 4 -->
+                <div class="flex flex-col md:flex-row items-center w-full mb-12 md:mb-8 relative z-10">
+                    <div class="hidden md:block md:w-1/2 pr-8 text-right">
+                        <h3 class="text-xl font-bold text-brand-tertiary">Semana 3 & 4</h3>
+                    </div>
+                    <div class="absolute left-[20px] md:left-1/2 transform md:-translate-x-1/2 w-10 h-10 rounded-full bg-brand-primary border-4 border-[#111827] flex items-center justify-center shadow-lg">
+                        <i class="fas fa-stethoscope text-white text-sm"></i>
+                    </div>
+                    <div class="w-full md:w-1/2 pl-16 md:pl-8">
+                        <div class="glass-panel p-6 rounded-xl hover:-translate-y-1 transition-transform duration-300">
+                            <h3 class="text-xl font-bold text-brand-tertiary md:hidden mb-2">Semana 3 & 4</h3>
+                            <p class="text-lg text-white font-medium">Diagnóstico de Marketing / Comercial</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semana 5 (Highlight) -->
+                <div class="flex flex-col md:flex-row items-center justify-end w-full relative z-10">
+                    <div class="w-full md:w-1/2 pl-16 md:pr-8 md:pl-0 md:text-right order-2 md:order-1">
+                        <div class="bg-gradient-to-r from-brand-secondary to-[#c7a473] p-1 rounded-xl shadow-[0_0_30px_rgba(221,189,142,0.3)] hover:-translate-y-2 transition-transform duration-300">
+                            <div class="bg-brand-darker p-6 rounded-lg h-full">
+                                <div class="flex items-center md:justify-end gap-3 mb-2">
+                                    <i class="fas fa-star text-brand-secondary animate-pulse"></i>
+                                    <h3 class="text-xl font-bold text-brand-secondary">Semana 5</h3>
+                                </div>
+                                <p class="text-2xl text-white font-bold">Plano de Marketing e Vendas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-[20px] md:left-1/2 transform md:-translate-x-1/2 w-14 h-14 rounded-full bg-brand-secondary border-4 border-[#111827] flex items-center justify-center shadow-[0_0_20px_rgba(221,189,142,0.6)] order-1 md:order-2">
+                        <i class="fas fa-rocket text-brand-darker text-xl"></i>
+                    </div>
+                    <div class="hidden md:block md:w-1/2 pl-8 text-left order-3">
+                        <h3 class="text-2xl font-bold text-brand-secondary">Semana 5</h3>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SESSÃO 03: Nosso Norte -->
+    <section class="py-24 bg-brand-primary relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 mb-8 backdrop-blur-sm">
+                <i class="fas fa-compass text-4xl text-brand-secondary"></i>
+            </div>
+            <h2 class="text-sm font-bold tracking-[0.2em] text-brand-secondary uppercase mb-4">Nosso Norte</h2>
+            <h3 class="text-2xl md:text-4xl font-bold text-white mb-10 leading-tight">
+                Qual o principal objetivo que deseja alcançar com a V4 Company?
+            </h3>
+            
+            <blockquote class="text-xl md:text-2xl text-blue-50 font-light leading-relaxed border-l-4 border-brand-secondary pl-6 md:pl-10 text-left bg-black/20 p-8 rounded-r-2xl shadow-xl">
+                "O objetivo é ter um direcionamento estratégico voltado para a criação de demanda para alcançar escalar vendas de modo previsível para atingir a meta de 
+                <strong class="text-brand-secondary font-bold">R$ 50 milhões de faturamento no ano de 2030</strong>, respeitando os limites e as ampliações da capacidade produtiva industrial."
+            </blockquote>
+        </div>
+    </section>
+
+    <!-- SESSÃO 04: Pesquisa de Mercado & Posicionamento -->
+    <section class="py-24 bg-[#1f2937] relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="text-brand-secondary font-semibold tracking-wider uppercase text-sm">2ª Semana</span>
+                <h2 class="text-3xl md:text-5xl font-bold text-white mt-2 mb-4">Pesquisa de Mercado & Posicionamento</h2>
+                <div class="w-24 h-1 bg-brand-primary mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Fato 1 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 hover:border-brand-primary transition-colors duration-300 flex flex-col h-full shadow-lg">
+                    <div class="p-6 border-b border-gray-800 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Fato 1</h3>
+                        </div>
+                        <h4 class="text-lg font-semibold text-brand-tertiary mb-2">Perda de Vendas por Objeção de Preço</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Envio de orçamentos em PDF somente com a cotação não gera valor quando chegar na mesa do decisor sem o contexto dos diferenciais da Stampare, pois, o atendimento comercial gera valor para a orçamentista pelo whatsapp.</p>
+                    </div>
+                    <div class="p-6 bg-brand-primary/10 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-check-circle text-brand-secondary"></i>
+                            <h4 class="text-md font-bold text-brand-secondary uppercase tracking-wider text-sm">Plano de Ação</h4>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed">Estruturar apresentação comercial personalizada por cliente e que posicione o valor percepido como + 35 anos, Tecidos e Tecnologias, cliente que confiam, Peça Piloto, garantia de prazo, garantia de padrão dentro do mesmo documento de orçamento.</p>
+                    </div>
+                </div>
+
+                <!-- Fato 2 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 hover:border-brand-primary transition-colors duration-300 flex flex-col h-full shadow-lg">
+                    <div class="p-6 border-b border-gray-800 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Fato 2</h3>
+                        </div>
+                        <h4 class="text-lg font-semibold text-brand-tertiary mb-2">Comunicação generalista</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Em mercado consolidado/ estagnado para gerar maior interesse diante de diversos outros concorrentes, precisamos ser profundos na comunicação para gerar conversão.</p>
+                    </div>
+                    <div class="p-6 bg-brand-primary/10 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-check-circle text-brand-secondary"></i>
+                            <h4 class="text-md font-bold text-brand-secondary uppercase tracking-wider text-sm">Plano de Ação</h4>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed">Lançar campanhas de Account-Based Marketing (ABM), com criativos e landing pages focadas por família de produtos, iniciando por camisas sociais e polos, que é onde tem maior volume. Validando, abrir para outras famílias e ir testando ABM por segmentos (teste 01 Agro)</p>
+                    </div>
+                </div>
+
+                <!-- Fato 3 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 hover:border-brand-primary transition-colors duration-300 flex flex-col h-full shadow-lg">
+                    <div class="p-6 border-b border-gray-800 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Fato 3</h3>
+                        </div>
+                        <h4 class="text-lg font-semibold text-brand-tertiary mb-2">Ausência de Ativação da Carteira</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed">Falta de uma gestão visual da situação da carteira de clientes tanto quanto uma analise de risco, RFM.</p>
+                    </div>
+                    <div class="p-6 bg-brand-primary/10 flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-check-circle text-brand-secondary"></i>
+                            <h4 class="text-md font-bold text-brand-secondary uppercase tracking-wider text-sm">Plano de Ação</h4>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed">Executar réguas de automação para envios de mensagens via e-mail e whatsapp, além de criação de tarefas no CRM de vendas</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-16 text-center">
+                <a href="https://drive.google.com/drive/folders/1PgFhT7hRb4BPGXCNlOQxUv-5rg1CyI53" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-brand-secondary text-brand-darker font-bold text-lg hover:bg-white transition-colors duration-300 shadow-[0_0_15px_rgba(221,189,142,0.4)]">
+                    <i class="fas fa-folder-open"></i>
+                    Clique para acessar o material
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SESSÃO 05: Diagnóstico Marketing / Comercial -->
+    <section class="py-24 bg-[#111827] relative">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="text-brand-secondary font-semibold tracking-wider uppercase text-sm bg-brand-primary/20 px-4 py-1 rounded-full">3ª e 4ª Semana</span>
+                <h2 class="text-3xl md:text-5xl font-bold text-white mt-4 mb-4">Diagnóstico Marketing / Comercial</h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Action items styled as wide bars -->
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-cogs text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Corrigir o rastreamento técnico via Google Tag Manager e GA4 para integrar Google Ads ao CRM Atendari, calculando CAC e ROI reais.</p>
+                </div>
+
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-bullseye text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Segmentar campanhas de Google Ads por família de produtos, comprando termos como "confecções de uniformes" (4.400 buscas) e direcionando a LPs dedicadas.</p>
+                </div>
+
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-laptop-code text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Desenvolver Landing Pages por família de produto integradas ao Leadster e WhatsApp, aplicando filtro de qualificação para lote mínimo de 30 peças.</p>
+                </div>
+
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-envelope-open-text text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Implementar matriz RFM no CRM para disparar automações de e-mail e WhatsApp, reativando clientes corporativos inativos na carteira.</p>
+                </div>
+
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-camera text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Ajustar linha editorial no Meta Ads priorizando fotos reais de produtos e grandes clientes, reduzindo o uso de artes geradas por IA.</p>
+                </div>
+
+                <div class="flex items-start gap-4 bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-brand-secondary transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-full bg-brand-primary/30 flex items-center justify-center shrink-0">
+                        <i class="fas fa-chart-line text-brand-secondary text-sm"></i>
+                    </div>
+                    <p class="text-gray-200 text-lg leading-relaxed"><strong class="text-brand-secondary font-semibold">Plano de Ação:</strong> Construir modelo financeiro de forecasting para fundamentar o aumento previsível da verba mensal de R$ 3.500 em anúncios de fundo de funil.</p>
+                </div>
+            </div>
+
+            <div class="mt-16 text-center">
+                <a href="https://drive.google.com/drive/folders/1k0mQSoQcdqwZ7Z1cbvvJUY-Aj8QJq-pi" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-transparent border-2 border-brand-secondary text-brand-secondary font-bold text-lg hover:bg-brand-secondary hover:text-brand-darker transition-colors duration-300 shadow-[0_0_15px_rgba(221,189,142,0.2)]">
+                    <i class="fas fa-folder-open"></i>
+                    Clique para acessar o material
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SESSÃO 06: Artefatos para execução -->
+    <section class="py-24 bg-[#1f2937] relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Artefatos para Execução</h2>
+                <div class="w-24 h-1 bg-brand-secondary mx-auto rounded-full"></div>
+            </div>
+
+            <!-- Bloco de 6 contêineres -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Card 1 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700 flex flex-col group">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://i.imgur.com/alOjVum.jpg" onerror="this.src='https://placehold.co/600x400/00305C/FFFFFF?text=Manual+de+Identidade'" alt="Manual de Identidade Visual" class="img-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300"></div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Manual de Identidade Visual</h3>
+                        <a href="https://drive.google.com/file/d/1diKXrhKwoeLLUQvTvR5jxIzjlE8y_otB/view" target="_blank" class="block w-full py-3 px-4 text-center rounded-lg bg-brand-primary text-white font-semibold hover:bg-brand-secondary hover:text-brand-darker transition-colors">
+                            Clique para acessar o material
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700 flex flex-col group">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://i.imgur.com/bI7flP0.jpg" onerror="this.src='https://placehold.co/600x400/00305C/FFFFFF?text=Criativos'" alt="Criativos para anúncio" class="img-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300"></div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Criativos para anúncio</h3>
+                        <a href="https://drive.google.com/drive/folders/1gV1ZnhxKfSH7UcwIocbZGhnf7oQG1UpS" target="_blank" class="block w-full py-3 px-4 text-center rounded-lg bg-brand-primary text-white font-semibold hover:bg-brand-secondary hover:text-brand-darker transition-colors">
+                            Clique para acessar o material
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700 flex flex-col group">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://i.imgur.com/fwBdnwy.jpg" onerror="this.src='https://placehold.co/600x400/00305C/FFFFFF?text=Landing+Page'" alt="Landing Page" class="img-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300"></div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Landing Page</h3>
+                        <a href="https://stampare.netlify.app/" target="_blank" class="block w-full py-3 px-4 text-center rounded-lg bg-brand-primary text-white font-semibold hover:bg-brand-secondary hover:text-brand-darker transition-colors">
+                            Clique para acessar o material
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700 flex flex-col group cursor-pointer" onclick="openImageModal('https://i.imgur.com/oet6Zyg.png')">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://i.imgur.com/oet6Zyg.png" onerror="this.src='https://placehold.co/600x400/00305C/FFFFFF?text=Roadmap'" alt="Roadmap" class="img-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <i class="fas fa-search-plus text-4xl text-white drop-shadow-md"></i>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between pointer-events-none">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Roadmap</h3>
+                        <span class="block w-full py-3 px-4 text-center rounded-lg bg-brand-primary text-white font-semibold group-hover:bg-brand-secondary group-hover:text-brand-darker transition-colors pointer-events-auto">
+                            Ampliar Imagem
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl border border-gray-700 flex flex-col group">
+                    <div class="h-48 overflow-hidden relative">
+                        <!-- User provided https://freeimage.host/i/nWmxjCQ which is a page, so it might fail to load as image. Using a fallback strategy. -->
+                        <img src="https://iili.io/nWmxjCQ.jpg" onerror="this.src='https://placehold.co/600x400/00305C/FFFFFF?text=Playbook+Comercial'" alt="Playbook Comercial" class="img-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300"></div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 text-center">Playbook Comercial</h3>
+                        <a href="https://drive.google.com/file/d/1FvwFT7-ozDYJU3JpMDaM3VZY029w-YHt/view" target="_blank" class="block w-full py-3 px-4 text-center rounded-lg bg-brand-primary text-white font-semibold hover:bg-brand-secondary hover:text-brand-darker transition-colors">
+                            Clique para acessar o material
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 6 (Complementary) -->
+                <div class="bg-gradient-to-br from-brand-primary to-gray-900 rounded-2xl overflow-hidden shadow-xl border border-brand-secondary/30 flex flex-col justify-center items-center p-8 group hover:border-brand-secondary transition-colors cursor-pointer" onclick="window.open('https://drive.google.com/drive/folders/1zAGTcbwtPIb09qih9R60_HxgBb4XTUMm', '_blank')">
+                    <div class="w-20 h-20 rounded-full bg-brand-secondary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-archive text-4xl text-brand-secondary"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2 text-center">Acervo Completo</h3>
+                    <p class="text-gray-300 text-center text-sm mb-6">Acesso a todos os materiais e documentos do projeto.</p>
+                    <span class="inline-flex items-center gap-2 text-brand-secondary font-semibold group-hover:text-white transition-colors">
+                        Acessar Drive <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SESSÃO 07: FORECAST / PROJEÇÃO -->
+    <section class="py-24 bg-[#111827] relative">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Forecast</h2>
+                <div class="w-24 h-1 bg-brand-primary mx-auto rounded-full"></div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-2xl p-4 md:p-8 shadow-2xl border border-gray-700">
+                <img src="https://i.imgur.com/hSWMVk9.png" onerror="this.src='https://placehold.co/1200x600/00305C/FFFFFF?text=Gráfico+de+Projeção'" alt="Gráfico de Forecast" class="w-full h-auto rounded-lg shadow-inner">
+            </div>
+
+            <div class="mt-12 text-center">
+                <a href="https://docs.google.com/spreadsheets/d/1RnQB8L7BEI0ic_a5lPW8s93oECixgpXJU3S4GgTFOBs/edit?usp=sharing" target="_blank" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-brand-primary text-white font-bold text-lg hover:bg-brand-secondary hover:text-brand-darker transition-colors duration-300 shadow-lg">
+                    <i class="fas fa-chart-bar"></i>
+                    Clique para acessar o material
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SESSÃO 08: Calendário Estratégico -->
+    <section class="py-24 bg-[#1f2937] relative" id="calendario">
+        <div class="max-w-[1200px] mx-auto px-6 gantt-wrapper">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Calendário Estratégico (6 meses)</h2>
+                <div class="w-24 h-1 bg-brand-secondary mx-auto rounded-full"></div>
+                <p class="text-gray-400 mt-4">Clique nas barras do cronograma para ver os detalhes da ação.</p>
+            </div>
+
+            <!-- Gantt Chart Container (HTML provided by user adapted for dark layout via CSS variables) -->
+            <div class="bg-[#111827] p-4 md:p-8 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-gray-700">
+                <div class="gantt-chart">
+                    <div class="gantt-header topic">Ação / Tópico</div>
+                    <div class="gantt-header">Novembro<br><small>2026</small></div>
+                    <div class="gantt-header">Dezembro<br><small>2026</small></div>
+                    <div class="gantt-header">Janeiro<br><small>2027</small></div>
+                    <div class="gantt-header">Fevereiro<br><small>2027</small></div>
+                    <div class="gantt-header">Março<br><small>2027</small></div>
+                    <div class="gantt-header">Abril<br><small>2027</small></div>
+
+                    <!-- Mês 1 -->
+                    <div class="gantt-cell topic-cell">Configuração do Rastreamento GTM</div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Configuração do Rastreamento GTM', 'Instalar o Google Tag Manager e GA4 para rastrear a origem primária das cotações. Configurar a captura das variáveis UTM (Source, Medium, Campaign, Term) no evento de &quot;Formulário Enviado&quot; e garantir que esses parâmetros sejam registrados nos cards do Atendari. A entrega será uma cotação teste mapeada de ponta a ponta para viabilizar o cálculo correto do Custo de Aquisição (CAC).', 'Novembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Publicação da Landing Page</div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Publicação da Landing Page', 'Publicar a página que a V4 Desenvolveu focada na venda das famílias de Camisas Sociais e Polos. A entrega será a página no ar conectada via formulário diretamente à primeira etapa do funil do Atendari.', 'Novembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Produção de Criativos e Copy</div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Produção de Criativos e Copy', 'Desenvolver o pacote de peças visuais (estáticos, carrosséis vídeos) utilizando exclusivamente fotos reais e uniformes ambientados no contexto de trabalho. O copy destacará casos de clientes reais (ex: 3M, Bayer) e abordará dores corporativas, como atrasos e divergência de cor em lotes. A entrega será o pacote de anúncios classificado por argumento (Autoridade, Inversão de Risco, Qualidade) pronto para campanhas.', 'Novembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Ajustes Ads (Google e Meta)</div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Ajustes das Campanhas Google e Meta Ads', 'Conforme enviado no documento de Diagnóstico de Marketing.', 'Novembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <!-- Mês 2 -->
+                    <div class="gantt-cell topic-cell">Implementação Playbook</div>
+                    <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Implementação do Playbook Comercial', 'Fixar as cadências de gestão para o gerente comercial: Daily para destravar negócios parados, reunião semanal para avaliação da saúde do funil/análise de perdas, e fechamento quinzenal de forecast. Atualizar o playbook com as objeções mapeadas durante o trimestre e os scripts definitivos.', 'Dezembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Alteração Doc Orçamento</div>
+                    <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Alteração do Doc Orçamento', 'Substituir o envio de PDFs somente com preços por proposta comercial que facilitem a aprovação da diretoria do cliente. O modelo de estrutura de template está no playbook comercial entregue.', 'Dezembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Reestruturação CRM Atendari</div>
+                    <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Reestruturação do CRM Atendari', 'Configurar no Atendari os funis separados para &quot;Novos Negócios&quot; e &quot;Reativação&quot;. Tornar obrigatório o preenchimento de CNPJ, Finalidade de Uso (brinde, equipe, feira), Quantidade (com filtro mínimo comercial de 30 peças) e Prazo Desejado logo na entrada da oportunidade. A entrega será o funil validado operando com simulação de atendimento.', 'Dezembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <div class="gantt-cell topic-cell">Mapeamento da Carteira</div>
+                    <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Mapeamento da Carteira', 'Cruzar dados do ERP (faturamento, frequência, data da última compra e ciclo médio de reposição) para classificar os clientes atuais na matriz RFM. Atribuir tarefas específicas aos vendedores para abordar imediatamente os clientes em &quot;Inatividade Recente&quot; (1x acima do ciclo normal) e &quot;Declínio&quot;. A entrega será a lista da carteira priorizada com o plano de ação de contato para cada responsável no CRM.', 'Dezembro 2026')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <!-- Mês 3 -->
+                    <div class="gantt-cell topic-cell">Automações de Recompra</div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Implementação das Automações de Recompra', 'Automatizar o disparo de tarefas de follow-up baseadas no tempo de inatividade. Criar regras no sistema para gerar um alerta ao vendedor quando um cliente cruzar o próprio ciclo de recompra e disparar réguas de e-mail. A entrega será o piloto de automação rodando sem duplicidades e condicionado a parar assim que o cliente responder ou gerar novo pedido.', 'Janeiro 2027')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <!-- Mês 4 -->
+                    <div class="gantt-cell topic-cell">Integração BI (Mkt e Vendas)</div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Integração de Indicadores de Marketing e Vendas (BI)', 'Conectar os dados de &quot;Negócio Ganho&quot; no CRM ao sistema de anúncios e ao ERP para fechar o ciclo de análise. Calcular o Retorno sobre Investimento rastreando quais campanhas específicas geraram os clientes pagantes, e separar o painel entre faturamento de &quot;Novos CNPJs&quot; e faturamento de &quot;Recompra/Reativação&quot;. A entrega será o dashboard no Looker Studio operando com métricas financeiras integradas e CAC validado.', 'Fevereiro 2027')"></div></div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+                    <!-- Mês 5 -->
+                    <div class="gantt-cell topic-cell">Expansão na Base (Cross-sell)</div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Expansão na Base (Cross-sell)', 'Executar abordagem (telefone/WhatsApp) nos clientes que já compram regularmente para inserir famílias de produtos complementares. O vendedor revisará as aquisições anteriores e apresentará a solução (ex: propor linha executiva em malha Concord para uma empresa que hoje só adquire linha operacional de chão de fábrica).', 'Março 2027')"></div></div>
+                    <div class="gantt-cell"></div>
+
+                    <!-- Mês 6 -->
+                    <div class="gantt-cell topic-cell">Replanejamento Orçamentário</div>
+                    <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+                    <div class="gantt-cell"><div class="gantt-bar" onclick="openModal('Replanejamento Orçamentário', 'Analisar os resultados dos 6 primeiros meses de operação. Avaliar a rentabilidade (margem final vendida vs descontos aplicados), o Custo de Aquisição validado (CAC real), o impacto financeiro da recuperação de inativos via RFM e o teto da capacidade fabril de Americana. A entrega será o plano para o semestre seguinte, contendo as decisões formais de aumento de orçamento em mídia, manutenção ou pausa de campanhas baseadas unicamente no retorno validado.', 'Abril 2027')"></div></div>
+                </div>
+
+                <!-- Resumo de Serviços Recomendados -->
+                <div class="mt-16 pt-10 border-t border-gray-700">
+                    <h2 class="text-3xl font-bold text-center text-white mb-10">Resumo de Serviços Recomendados</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <!-- Categoria TER -->
+                        <div class="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
+                            <div class="bg-brand-primary p-6 text-center border-b-4 border-brand-secondary">
+                                <h3 class="text-2xl font-bold text-white m-0">Categoria TER</h3>
+                            </div>
+                            <div class="p-8 bg-gray-800">
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl mb-4 border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Implementação SDR IA</span>
+                                </div>
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl mb-4 border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-handshake"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Implementação CRM Vendas</span>
+                                </div>
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl mb-4 border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Implementação CRM Marketing</span>
+                                </div>
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl mb-4 border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-project-diagram"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Implementação de Réguas de Relacionamento</span>
+                                </div>
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Implementação de Dashboard</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoria EXECUTAR -->
+                        <div class="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-lg h-fit">
+                            <div class="bg-brand-primary p-6 text-center border-b-4 border-brand-secondary">
+                                <h3 class="text-2xl font-bold text-white m-0">Categoria EXECUTAR</h3>
+                            </div>
+                            <div class="p-8 bg-gray-800">
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl mb-4 border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-headset"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Combo Performance - Inside Sales - Invest. Mídia 5–15K</span>
+                                </div>
+                                <div class="flex items-center gap-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                                    <div class="w-10 h-10 rounded-full bg-brand-secondary/20 text-brand-secondary flex items-center justify-center shrink-0">
+                                        <i class="fas fa-pager"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-200">Manutenção de Landing Page</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Acesso Geral no Final -->
+            <div class="mt-16 text-center bg-brand-primary/10 border border-brand-primary/30 p-10 rounded-3xl">
+                <h3 class="text-2xl font-bold text-white mb-6">Acesse aqui todos os materiais do Mapa Estratégico Digital:</h3>
+                <a href="https://drive.google.com/drive/folders/1zAGTcbwtPIb09qih9R60_HxgBb4XTUMm" target="_blank" class="inline-flex items-center gap-3 px-10 py-5 rounded-full bg-brand-secondary text-brand-darker font-bold text-xl hover:bg-white transition-colors duration-300 shadow-[0_0_25px_rgba(221,189,142,0.5)]">
+                    <i class="fas fa-folder-open"></i>
+                    Clique para acessar o material
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Modal for Gantt Chart Details -->
+    <div class="modal-overlay" id="actionModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="forceCloseModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-brand-secondary mb-4 border-b-2 border-gray-600 pb-2 inline-block" id="modalTitle">Título da Ação</h2>
+            <div class="text-gray-300 leading-relaxed text-lg mt-4" id="modalDesc">Descrição da ação...</div>
+            <div class="mt-6 pt-4 border-t border-gray-700 text-brand-primary font-bold bg-white/5 inline-block px-4 py-2 rounded-lg" id="modalMeta">Período: </div>
         </div>
     </div>
 
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
-        <div class="max-w-7xl mx-auto">
+    <div id="imageModal" onclick="closeImageModal()">
+        <span id="imageModalClose" onclick="closeImageModal()">&times;</span>
+        <img id="imageModalContent" src="" alt="Expanded Image">
+    </div>
 
-            <!-- ========================================== -->
-            <!-- DASHBOARD 01: RFM, Receita e Tendências    -->
-            <!-- ========================================== -->
-            <div id="dashboard-01" class="block space-y-6">
-                
-                <!-- Filters Section -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row flex-wrap gap-4 items-end">
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Mercado</label>
-                        <select id="filter-d01-mercado" onchange="applyFiltersD01()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                            <option value="Todos">Todos os Mercados</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Pesquisar Cliente / ID</label>
-                        <input type="text" id="filter-d01-cliente" onkeyup="applyFiltersD01()" placeholder="Ex: 3M - SUMARÉ" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                    </div>
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Tendência Gasto</label>
-                        <select id="filter-d01-tendencia" onchange="applyFiltersD01()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                            <option value="Todos">Todas as Tendências</option>
-                            <option value="Crescendo">Crescendo</option>
-                            <option value="Estável">Estável</option>
-                            <option value="Caindo">Caindo</option>
-                            <option value="Novo no período">Novo no período</option>
-                            <option value="Sem compras">Sem compras</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-auto">
-                        <button onclick="resetFiltersD01()" class="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition">
-                            Limpar Filtros
-                        </button>
-                    </div>
-                </div>
-
-                <!-- KPI Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-stampare-navy">
-                        <p class="text-sm font-medium text-gray-500 mb-1">Total de Clientes</p>
-                        <h3 id="kpi-d01-clientes" class="text-2xl font-bold text-gray-900">0</h3>
-                        <p class="text-xs text-gray-400 mt-2">Na seleção atual</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-stampare-teal">
-                        <p class="text-sm font-medium text-gray-500 mb-1">Pedidos (Últimos 12m)</p>
-                        <h3 id="kpi-d01-gasto12m" class="text-2xl font-bold text-gray-900">R$ 0</h3>
-                        <p id="kpi-d01-var-gasto" class="text-xs font-medium mt-2">vs. 12m anteriores</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
-                        <p class="text-sm font-medium text-gray-500 mb-1">Total de Pedidos (12m)</p>
-                        <h3 id="kpi-d01-pedidos" class="text-2xl font-bold text-gray-900">0</h3>
-                        <p class="text-xs text-gray-400 mt-2">Pedidos confirmados no período</p>
-                    </div>
-                </div>
-
-                <!-- Charts Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative">
-                        <h4 class="text-sm font-bold text-gray-800 mb-4">Tendências de Frequência e Gasto</h4>
-                        <div class="h-64 relative">
-                            <canvas id="chartD01-trends"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative">
-                        <h4 class="text-sm font-bold text-gray-800 mb-4">Pedidos por mercado</h4>
-                        <div class="h-64 relative">
-                            <canvas id="chartD01-mercadoGasto"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-2">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-800">Matriz RFM</h4>
-                                <p class="text-xs text-gray-500"><strong class="text-stampare-teal">Clique em uma bolha para filtrar a tela!</strong></p>
-                            </div>
-                        </div>
-                        <div class="h-[500px] relative cursor-pointer">
-                            <canvas id="chartD01-fxm"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-2">
-                        <h4 class="text-sm font-bold text-gray-800 mb-4">Comparação Financeira</h4>
-                        <div class="h-64 relative">
-                            <canvas id="chartD01-compare"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detailed Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-wrap gap-3">
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-800">Detalhamento de Clientes</h4>
-                            <p class="text-xs text-gray-500" id="d01-table-info">Mostrando 0 registros</p>
-                            <p class="text-xs text-stampare-teal font-medium mt-1 hidden" id="d01-bubble-filter-indicator">
-                                Filtro Ativo: <span id="bubble-filter-text"></span> 
-                                <button onclick="clearBubbleFilter()" class="underline text-red-500 ml-2 hover:text-red-700">Remover Filtro</button>
-                            </p>
-                        </div>
-                        <button onclick="exportD01ToCSV()" class="px-4 py-2 bg-stampare-navy text-white text-xs font-semibold rounded-lg hover:bg-blue-900 transition flex items-center gap-2 shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Baixar Planilha
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto table-container max-h-[400px]">
-                        <table class="min-w-full text-left text-sm whitespace-nowrap">
-                            <thead class="uppercase text-gray-500 bg-gray-50 sticky top-0 z-10 text-[11px] font-semibold border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 py-3">Cliente / ID</th>
-                                    <th class="px-4 py-3">Contato</th>
-                                    <th class="px-4 py-3">Mercado</th>
-                                    <th class="px-4 py-3">Último Pedido</th>
-                                    <th class="px-4 py-3 text-right">Gasto 12m</th>
-                                    <th class="px-4 py-3 text-center">Tend. Gasto</th>
-                                    <th class="px-4 py-3 text-center">Ped. 12m</th>
-                                    <th class="px-4 py-3 text-center">Código R-F-M</th>
-                                    <th class="px-4 py-3 text-center">Nota RFM</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-d01-body" class="divide-y divide-gray-100 text-gray-700">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================== -->
-            <!-- DASHBOARD 02: Atividade e Risco            -->
-            <!-- ========================================== -->
-            <div id="dashboard-02" class="hidden space-y-6">
-                
-                <!-- Filters Section -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row flex-wrap gap-4 items-end">
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Mercado</label>
-                        <select id="filter-d02-mercado" onchange="applyFiltersD02()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                            <option value="Todos">Todos os Mercados</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Status de Atividade</label>
-                        <select id="filter-d02-status" onchange="applyFiltersD02()" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                            <option value="Todos">Todos os Status</option>
-                            <option value="Ativo">Ativo</option>
-                            <option value="Inativo recente">Inativo recente</option>
-                            <option value="Inativo antigo">Inativo antigo</option>
-                            <option value="Histórico insuficiente">Histórico insuficiente</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-auto flex-1 min-w-[150px]">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Pesquisar Cliente / ID</label>
-                        <input type="text" id="filter-d02-cliente" onkeyup="applyFiltersD02()" placeholder="Ex: 3M - SUMARÉ" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-stampare-teal focus:border-stampare-teal block p-2">
-                    </div>
-                    <div class="w-full md:w-auto">
-                        <button onclick="resetFiltersD02()" class="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition">
-                            Limpar Filtros
-                        </button>
-                    </div>
-                </div>
-
-                <!-- KPI Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-gray-800">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Total Analisado</p>
-                        <h3 id="kpi-d02-total" class="text-xl font-bold text-gray-900">0</h3>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Ativos</p>
-                        <h3 id="kpi-d02-ativos" class="text-xl font-bold text-green-600">0</h3>
-                        <p id="kpi-d02-ativos-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-orange-500">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Inativo Recente</p>
-                        <h3 id="kpi-d02-recentes" class="text-xl font-bold text-orange-600">0</h3>
-                        <p id="kpi-d02-recentes-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Inativo Antigo</p>
-                        <h3 id="kpi-d02-antigos" class="text-xl font-bold text-red-600">0</h3>
-                        <p id="kpi-d02-antigos-pct" class="text-[10px] text-gray-400 mt-1">0% do total confiável</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-gray-300">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Histórico Insuficiente</p>
-                        <h3 id="kpi-d02-insuf" class="text-xl font-bold text-gray-500">0</h3>
-                        <p class="text-[10px] text-gray-400 mt-1">&lt; 2 pedidos confirmados</p>
-                    </div>
-                </div>
-
-                <!-- Charts Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative lg:col-span-1">
-                        <h4 class="text-sm font-bold text-gray-800 mb-4">Proporção de Status</h4>
-                        <div class="h-64 relative">
-                            <canvas id="chartD02-status"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative lg:col-span-2">
-                        <h4 class="text-sm font-bold text-gray-800 mb-4">Status de Atividade por Mercado</h4>
-                        <div class="h-64 relative">
-                            <canvas id="chartD02-mercado"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative col-span-1 lg:col-span-3">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-800">Analise de troca de faixa</h4>
-                            </div>
-                        </div>
-                        <div class="h-80 relative">
-                            <canvas id="chartD02-scatter"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detailed Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-wrap gap-3">
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-800">Detalhamento de Clientes</h4>
-                            <p class="text-xs text-gray-500" id="d02-table-info">Mostrando 0 registros</p>
-                        </div>
-                        <button onclick="exportD02ToCSV()" class="px-4 py-2 bg-stampare-navy text-white text-xs font-semibold rounded-lg hover:bg-blue-900 transition flex items-center gap-2 shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Baixar Planilha
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto table-container max-h-[400px]">
-                        <table class="min-w-full text-left text-sm whitespace-nowrap">
-                            <thead class="uppercase text-gray-500 bg-gray-50 sticky top-0 z-10 text-[11px] font-semibold border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3">Cliente / ID</th>
-                                    <th class="px-4 py-3">Contato</th>
-                                    <th class="px-4 py-3">Mercado</th>
-                                    <th class="px-4 py-3 text-center">Último Pedido</th>
-                                    <th class="px-4 py-3 text-right">Dias s/ Comprar</th>
-                                    <th class="px-4 py-3 text-right">Média Indiv. (Dias)</th>
-                                    <th class="px-4 py-3 text-right">Razão (Risco)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-d02-body" class="divide-y divide-gray-100 text-gray-700">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+    <!-- FOOTER -->
+    <footer class="bg-brand-v4red pt-16 pb-12 text-center text-white relative">
+        <div class="max-w-4xl mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-12 tracking-wide uppercase drop-shadow-md">
+                Obrigado por<br>abrir as portas para a<br>V4 Company
+            </h2>
+            
+            <div class="flex flex-col items-center justify-center mt-16 space-y-4">
+                <span class="text-sm font-semibold tracking-[0.3em] uppercase opacity-90">Produzido por:</span>
+                <img src="https://i.imgur.com/SU08Zb0.png" onerror="this.src='https://brand.v4company.com/_next/image?url=%2Fimages%2Flogos%2Fsimbolo-company.webp&w=256&q=75'" class="h-16 object-contain" alt="V4 Company">
             </div>
         </div>
-    </main>
+    </footer>
 
     <script>
-        // --- GLOBAL STATE ---
-        const state = {
-            d01: { raw: [], filtered: [], activeBubble: null },
-            d02: { raw: [], filtered: [] },
-            markets: new Set(),
-            charts: {}
+        // --- Modal Logic ---
+        const modal = document.getElementById('actionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalMeta = document.getElementById('modalMeta');
+
+        function openModal(title, description, period) {
+            modalTitle.textContent = title;
+            modalDesc.textContent = description;
+            modalMeta.textContent = 'Período estimado: ' + period;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeModal(event) {
+            if (event.target === modal) {
+                forceCloseModal();
+            }
+        }
+
+        function forceCloseModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+
+        // --- Image Modal Logic ---
+        const imgModal = document.getElementById('imageModal');
+        const imgModalContent = document.getElementById('imageModalContent');
+
+        function openImageModal(src) {
+            imgModalContent.src = src;
+            imgModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            imgModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            imgModalContent.src = '';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                forceCloseModal();
+                closeImageModal();
+            }
+        });
+
+        // --- Canvas Network Animation Logic ---
+        window.onload = function() {
+            /* =========================================
+               CONFIGURAÇÃO DAS CORES DA ANIMAÇÃO
+               ========================================= */
+            const coresDasBolinhas = ['#DDBD8E']; 
+            const corDasLinhas = '#DDBD8E'; 
+            /* ========================================= */
+
+            const canvas = document.getElementById('hero-canvas');
+            if(!canvas) return; // Guard clause in case canvas isn't found
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 1.5;
+                    this.vy = (Math.random() - 0.5) * 1.5;
+                    this.size = Math.random() * 3 + 1;
+                    this.color = coresDasBolinhas[Math.floor(Math.random() * coresDasBolinhas.length)];
+                    this.alpha = Math.random() * 0.5 + 0.1;
+                }
+                
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+                }
+                
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fill();
+                }
+            }
+            
+            function init() {
+                particles = [];
+                const particleCount = width > 768 ? 150 : 60; 
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                
+                particles.forEach((p, index) => {
+                    p.update();
+                    p.draw();
+                    
+                    for (let j = index + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x;
+                        const dy = p.y - p2.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = corDasLinhas;
+                            ctx.globalAlpha = 1 - (distance / 150);
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                        }
+                    }
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            window.addEventListener('resize', () => {
+                resize();
+                init();
+            });
+            
+            resize();
+            init();
+            animate();
         };
 
-        const colors = {
-            navy: '#00305C',
-            teal: '#0F766E',
-            green: '#10B981',
-            orange: '#F59E0B',
-            red: '#EF4444',
-            gray: '#9CA3AF',
-            slate: '#64748B',
-            blue: '#3B82F6'
-        };
-
-        // --- UTILS ---
-        const formatMoney = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-        const formatPct = (val) => new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 1 }).format(val);
-        const formatNum = (val) => new Intl.NumberFormat('pt-BR').format(val);
-
-        function switchTab(tab) {
-            const btnD01 = document.getElementById('btn-d01');
-            const btnD02 = document.getElementById('btn-d02');
-            const viewD01 = document.getElementById('dashboard-01');
-            const viewD02 = document.getElementById('dashboard-02');
-
-            if (tab === 'd01') {
-                btnD01.className = 'tab-btn tab-active pb-4 px-1 text-sm';
-                btnD02.className = 'tab-btn tab-inactive pb-4 px-1 text-sm';
-                viewD01.classList.remove('hidden');
-                viewD02.classList.add('hidden');
+        // Header Background transition on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('bg-[#0a0a0a]/95');
+                header.classList.remove('bg-[#0a0a0a]/90');
+                header.classList.add('py-2');
+                header.classList.remove('py-4');
             } else {
-                btnD01.className = 'tab-btn tab-inactive pb-4 px-1 text-sm';
-                btnD02.className = 'tab-btn tab-active pb-4 px-1 text-sm';
-                viewD01.classList.add('hidden');
-                viewD02.classList.remove('hidden');
+                header.classList.add('bg-[#0a0a0a]/90');
+                header.classList.remove('bg-[#0a0a0a]/95');
+                header.classList.add('py-4');
+                header.classList.remove('py-2');
             }
-        }
-
-        // --- FILE UPLOAD & PROCESSING ---
-        let processCount = 0;
-
-        function processUploadedFiles() {
-            const fileD01 = document.getElementById('file-d01').files[0];
-            const fileD02 = document.getElementById('file-d02').files[0];
-            const errorMsg = document.getElementById('upload-error');
-
-            if (!fileD01 || !fileD02) {
-                errorMsg.classList.remove('hidden');
-                return;
-            }
-
-            errorMsg.classList.add('hidden');
-            document.getElementById('setup-panel').classList.add('hidden');
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            document.getElementById('loading-spinner').classList.add('flex');
-
-            // Reset state
-            processCount = 0;
-            state.markets.clear();
-
-            Papa.parse(fileD01, { header: true, dynamicTyping: true, skipEmptyLines: true, 
-                complete: (res) => processData(res.data, 'd01') });
-            Papa.parse(fileD02, { header: true, dynamicTyping: true, skipEmptyLines: true, 
-                complete: (res) => processData(res.data, 'd02') });
-        }
-
-        function processData(data, type) {
-            // Clean up potentially problematic keys
-            const cleanData = data.map(row => {
-                let cleanRow = {};
-                for (let key in row) {
-                    cleanRow[key.trim()] = row[key];
-                }
-                return cleanRow;
-            });
-            
-            state[type].raw = cleanData;
-            state[type].filtered = cleanData;
-            
-            cleanData.forEach(row => {
-                if (row['Mercado']) state.markets.add(row['Mercado']);
-            });
-
-            checkInitComplete();
-        }
-
-        function checkInitComplete() {
-            processCount++;
-            if (processCount >= 2) {
-                populateMarketFilters();
-                applyFiltersD01();
-                applyFiltersD02();
-                // Hide overlay entirely
-                document.getElementById('setup-overlay').style.display = 'none';
-            }
-        }
-
-        function startMockData() {
-            document.getElementById('setup-panel').classList.add('hidden');
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            document.getElementById('loading-spinner').classList.add('flex');
-            
-            // Short delay to allow UI to update before heavy processing
-            setTimeout(generateMockData, 300);
-        }
-
-        function generateMockData() {
-            processCount = 0;
-            state.markets.clear();
-
-            const mercados = ['Indústria', 'Saúde', 'Educação', 'Varejo', 'Logística', 'Serviços Corporativos'];
-            // Realistic names array for search testing
-            const realNames = [
-                '3M - SUMARÉ', 'PETROBRAS', 'VALE S.A.', 'ITAÚ UNIBANCO', 'AMBEV', 
-                'WEG S.A.', 'GERDAU', 'EMBRAER', 'NATURA', 'KLABIN', 
-                'SUZANO', 'LOCALIZA', 'RAIA DROGASIL', 'HOSPITAL ALBERT EINSTEIN', 'VIVO'
-            ];
-            
-            const mockD01 = [];
-            const mockD02 = [];
-
-            for (let i = 0; i < 150; i++) {
-                const isNew = Math.random() > 0.9;
-                const market = mercados[Math.floor(Math.random() * mercados.length)];
-                // Pick a realistic name and add a random filial/number for uniqueness
-                const clientName = realNames[i % realNames.length] + (i >= realNames.length ? ` - Filial ${Math.floor(Math.random()*100)}` : '');
-                const cnpjDemo = `DEMO-${1000 + i}`;
-                
-                // D01 Base Logic
-                const diasUltimo = Math.floor(Math.random() * 400);
-                let R = diasUltimo <= 72 ? 5 : diasUltimo <= 145 ? 4 : diasUltimo <= 218 ? 3 : diasUltimo <= 292 ? 2 : 1;
-                
-                const ped12m = isNew ? Math.floor(Math.random() * 2) + 1 : Math.floor(Math.random() * 8);
-                let F = ped12m >= 5 ? 5 : ped12m === 4 ? 4 : ped12m === 3 ? 3 : ped12m === 2 ? 2 : 1;
-                
-                const gasto12m = ped12m * (500 + Math.random() * 5000);
-                let M = gasto12m > 20000 ? 5 : gasto12m > 10000 ? 4 : gasto12m > 5000 ? 3 : gasto12m > 2000 ? 2 : 1;
-                
-                const ped12mAnt = isNew ? 0 : ped12m + Math.floor(Math.random() * 5 - 2);
-                const gasto12mAnt = isNew ? 0 : gasto12m + (Math.random() * 10000 - 5000);
-                
-                const tendFreq = isNew ? 'Novo no período' : (ped12m === 0 && ped12mAnt === 0) ? 'Sem compras' : ped12m > ped12mAnt ? 'Crescendo' : ped12m < ped12mAnt ? 'Caindo' : 'Estável';
-                const tendGasto = isNew ? 'Novo no período' : (gasto12m === 0 && gasto12mAnt === 0) ? 'Sem compras' : gasto12m > gasto12mAnt ? 'Crescendo' : gasto12m < gasto12mAnt ? 'Caindo' : 'Estável';
-                
-                const notaRFM = Math.round((R + F + M) / 3);
-
-                const names = ['Ana Silva', 'Carlos Santos', 'Fernanda Lima', 'Roberto Alves', 'Mariana Costa', 'João Pedro', 'Beatriz Souza', 'Rafael Mendes', 'Camila Rocha', 'Lucas Martins'];
-                const comprador = names[Math.floor(Math.random() * names.length)];
-                const tel = `(11) 9${Math.floor(8000 + Math.random()*1999)}-${Math.floor(1000 + Math.random()*8999)}`;
-                const email = `${comprador.split(' ')[0].toLowerCase()}@${clientName.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '') || 'empresa'}.com.br`;
-
-                mockD01.push({
-                    'CNPJ matriz': cnpjDemo,
-                    'Cliente': clientName,
-                    'Comprador': comprador,
-                    'Telefone': tel,
-                    'Email': email,
-                    'Mercado': market,
-                    'Último pedido confirmado': `2026-${Math.floor(Math.random()*12+1).toString().padStart(2,'0')}-01`,
-                    'Dias desde último pedido': diasUltimo,
-                    'Pedidos últimos 12m': ped12m,
-                    'Pedidos 12m anteriores': Math.max(0, ped12mAnt),
-                    'Tendência frequência': tendFreq,
-                    'Gasto últimos 12m (R$)': gasto12m,
-                    'Gasto 12m anteriores (R$)': Math.max(0, gasto12mAnt),
-                    'Tendência gasto': tendGasto,
-                    'Nota R': R,
-                    'Nota F': F,
-                    'Nota M': M,
-                    'Código R-F-M': `${R}-${F}-${M}`,
-                    'Nota RFM': notaRFM
-                });
-
-                // D02 Base Logic
-                const pedHist = ped12m + Math.max(0, ped12mAnt) + Math.floor(Math.random() * 5);
-                const mediaIndiv = pedHist >= 2 ? Math.floor(30 + Math.random() * 150) : 0;
-                
-                let status = 'Histórico insuficiente';
-                if (pedHist >= 2) {
-                    if (diasUltimo <= mediaIndiv) status = 'Ativo';
-                    else if (diasUltimo <= 2 * mediaIndiv) status = 'Inativo recente';
-                    else status = 'Inativo antigo';
-                }
-
-                mockD02.push({
-                    'CNPJ matriz': cnpjDemo,
-                    'Cliente': clientName,
-                    'Comprador': comprador,
-                    'Telefone': tel,
-                    'Email': email,
-                    'Mercado': market,
-                    'Último pedido confirmado': `2026-${Math.floor(Math.random()*12+1).toString().padStart(2,'0')}-01`,
-                    'Dias sem comprar': diasUltimo,
-                    'Pedidos confirmados histórico': pedHist,
-                    'Média individual entre pedidos (dias)': mediaIndiv,
-                    'Status de atividade': status
-                });
-            }
-
-            processData(mockD01, 'd01');
-            processData(mockD02, 'd02');
-        }
-
-        function populateMarketFilters() {
-            const options = Array.from(state.markets).sort().map(m => `<option value="${m}">${m}</option>`).join('');
-            
-            // Clear and set to avoid duplicates on re-upload
-            const filterD01 = document.getElementById('filter-d01-mercado');
-            const filterD02 = document.getElementById('filter-d02-mercado');
-            
-            filterD01.innerHTML = '<option value="Todos">Todos os Mercados</option>' + options;
-            filterD02.innerHTML = '<option value="Todos">Todos os Mercados</option>' + options;
-        }
-
-        function destroyChart(id) {
-            if (state.charts[id]) {
-                state.charts[id].destroy();
-            }
-        }
-
-        function resetFiltersD01() {
-            document.getElementById('filter-d01-mercado').value = 'Todos';
-            document.getElementById('filter-d01-tendencia').value = 'Todos';
-            document.getElementById('filter-d01-cliente').value = '';
-            clearBubbleFilter(); // This calls applyFiltersD01() automatically
-        }
-
-        function clearBubbleFilter() {
-            state.d01.activeBubble = null;
-            document.getElementById('d01-bubble-filter-indicator').classList.add('hidden');
-            applyFiltersD01();
-        }
-
-        function applyFiltersD01() {
-            const mkt = document.getElementById('filter-d01-mercado').value;
-            const tend = document.getElementById('filter-d01-tendencia').value;
-            const search = document.getElementById('filter-d01-cliente').value.toLowerCase();
-
-            state.d01.filtered = state.d01.raw.filter(row => {
-                let pass = true;
-                if (mkt !== 'Todos' && row['Mercado'] !== mkt) pass = false;
-                if (tend !== 'Todos' && row['Tendência gasto'] !== tend) pass = false;
-                
-                if (state.d01.activeBubble) {
-                    if (row['Nota M'] !== state.d01.activeBubble.M || row['Nota F'] !== state.d01.activeBubble.F) {
-                        pass = false;
-                    }
-                }
-
-                if (search) {
-                    const clientName = (row['Cliente'] || '').toLowerCase();
-                    const clientId = (row['CNPJ matriz'] || '').toLowerCase();
-                    if (!clientName.includes(search) && !clientId.includes(search)) {
-                        pass = false;
-                    }
-                }
-                return pass;
-            });
-
-            updateDashboard01();
-        }
-
-        function updateDashboard01() {
-            const data = state.d01.filtered;
-            
-            const totalClients = data.length;
-            const gasto12m = data.reduce((sum, row) => sum + (row['Gasto últimos 12m (R$)'] || 0), 0);
-            const gastoAnt = data.reduce((sum, row) => sum + (row['Gasto 12m anteriores (R$)'] || 0), 0);
-            const varGasto = gastoAnt === 0 ? 0 : ((gasto12m - gastoAnt) / gastoAnt);
-            const totalPed = data.reduce((sum, row) => sum + (row['Pedidos últimos 12m'] || 0), 0);
-
-            document.getElementById('kpi-d01-clientes').innerText = formatNum(totalClients);
-            document.getElementById('kpi-d01-gasto12m').innerText = formatMoney(gasto12m);
-            document.getElementById('kpi-d01-pedidos').innerText = formatNum(totalPed);
-            
-            const varEl = document.getElementById('kpi-d01-var-gasto');
-            if(gastoAnt === 0) {
-                varEl.innerText = "vs. 12m anteriores: N/D";
-                varEl.className = "text-xs font-medium mt-2 text-gray-500";
-            } else {
-                varEl.innerText = `vs. 12m anteriores: ${varGasto > 0 ? '+' : ''}${formatPct(varGasto)}`;
-                varEl.className = `text-xs font-medium mt-2 ${varGasto >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-
-            renderTableD01(data);
-            renderChartD01_Mercado(data);
-            renderChartD01_FxM(data);
-            renderChartD01_Trends(data);
-            renderChartD01_Compare(gasto12m, gastoAnt);
-        }
-
-        function renderChartD01_Mercado(data) {
-            destroyChart('chartD01-mercadoGasto');
-            const mktSpend = {};
-            data.forEach(r => {
-                const m = r['Mercado'] || 'Outros';
-                mktSpend[m] = (mktSpend[m] || 0) + (r['Gasto últimos 12m (R$)'] || 0);
-            });
-            
-            const sorted = Object.entries(mktSpend).sort((a,b) => b[1]-a[1]).slice(0,6);
-
-            const ctx = document.getElementById('chartD01-mercadoGasto').getContext('2d');
-            state.charts['chartD01-mercadoGasto'] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted.map(i => i[0]),
-                    datasets: [{
-                        label: 'Gasto R$',
-                        data: sorted.map(i => i[1]),
-                        backgroundColor: colors.teal,
-                        borderRadius: 4
-                    }]
-                },
-                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function renderChartD01_FxM(data) {
-            destroyChart('chartD01-fxm');
-            const matrix = {};
-            data.forEach(r => {
-                const F = r['Nota F'];
-                const M = r['Nota M'];
-                if(F && M) {
-                    const key = `${M}-${F}`;
-                    matrix[key] = (matrix[key] || 0) + 1;
-                }
-            });
-
-            const bubbleData = Object.keys(matrix).map(k => {
-                const [m, f] = k.split('-');
-                return { x: parseInt(m), y: parseInt(f), r: Math.max(5, matrix[k] * 2) };
-            });
-
-            const ctx = document.getElementById('chartD01-fxm').getContext('2d');
-            state.charts['chartD01-fxm'] = new Chart(ctx, {
-                type: 'bubble',
-                data: {
-                    datasets: [{
-                        label: 'Clientes',
-                        data: bubbleData,
-                        backgroundColor: function(context) {
-                            const val = context.raw;
-                            if (!val) return colors.gray;
-                            const score = val.x + val.y;
-                            if (score >= 8) return 'rgba(16, 185, 129, 0.7)'; // Verde (Ótimo)
-                            if (score >= 6) return 'rgba(59, 130, 246, 0.7)'; // Azul (Bom)
-                            if (score >= 4) return 'rgba(245, 158, 11, 0.7)'; // Laranja (Atenção)
-                            return 'rgba(239, 68, 68, 0.7)'; // Vermelho (Risco)
-                        },
-                        borderColor: function(context) {
-                            const val = context.raw;
-                            if (!val) return colors.gray;
-                            const score = val.x + val.y;
-                            if (score >= 8) return '#10B981';
-                            if (score >= 6) return '#3B82F6';
-                            if (score >= 4) return '#F59E0B';
-                            return '#EF4444';
-                        },
-                        hoverBackgroundColor: function(context) {
-                            const val = context.raw;
-                            if (!val) return colors.gray;
-                            const score = val.x + val.y;
-                            if (score >= 8) return 'rgba(16, 185, 129, 1)';
-                            if (score >= 6) return 'rgba(59, 130, 246, 1)';
-                            if (score >= 4) return 'rgba(245, 158, 11, 1)';
-                            return 'rgba(239, 68, 68, 1)';
-                        }
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    onClick: (e, elements, chart) => {
-                        if (elements && elements.length > 0) {
-                            const dataPoint = chart.data.datasets[0].data[elements[0].index];
-                            state.d01.activeBubble = { M: dataPoint.x, F: dataPoint.y };
-                            document.getElementById('d01-bubble-filter-indicator').classList.remove('hidden');
-                            document.getElementById('bubble-filter-text').innerText = `Monetário ${dataPoint.x}, Frequência ${dataPoint.y}`;
-                            applyFiltersD01();
-                        }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: 'Nota Monetário (M)' }, min: 0.5, max: 5.5, ticks: {stepSize: 1} },
-                        y: { title: { display: true, text: 'Nota Frequência (F)' }, min: 0.5, max: 5.5, ticks: {stepSize: 1} }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    const count = matrix[`${ctx.raw.x}-${ctx.raw.y}`];
-                                    return `M${ctx.raw.x} / F${ctx.raw.y}: ${count} clientes`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderChartD01_Trends(data) {
-            destroyChart('chartD01-trends');
-            const cats = ['Crescendo', 'Estável', 'Caindo', 'Novo no período', 'Sem compras'];
-            const freq = {Crescendo:0, Estável:0, Caindo:0, 'Novo no período':0, 'Sem compras':0};
-            const gasto = {Crescendo:0, Estável:0, Caindo:0, 'Novo no período':0, 'Sem compras':0};
-
-            data.forEach(r => {
-                if(freq[r['Tendência frequência']] !== undefined) freq[r['Tendência frequência']]++;
-                if(gasto[r['Tendência gasto']] !== undefined) gasto[r['Tendência gasto']]++;
-            });
-
-            const ctx = document.getElementById('chartD01-trends').getContext('2d');
-            state.charts['chartD01-trends'] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: cats,
-                    datasets: [
-                        { label: 'Freq. de Pedidos', data: cats.map(c => freq[c]), backgroundColor: colors.blue, borderRadius: 2 },
-                        { label: 'Gasto R$', data: cats.map(c => gasto[c]), backgroundColor: colors.teal, borderRadius: 2 }
-                    ]
-                },
-                options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        function renderChartD01_Compare(g12, gAnt) {
-            destroyChart('chartD01-compare');
-            const ctx = document.getElementById('chartD01-compare').getContext('2d');
-            state.charts['chartD01-compare'] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['12m Anteriores', 'Últimos 12m'],
-                    datasets: [{
-                        label: 'Gasto Total (R$)',
-                        data: [gAnt, g12],
-                        backgroundColor: [colors.slate, colors.navy],
-                        borderRadius: 4
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function renderTableD01(data) {
-            const tbody = document.getElementById('table-d01-body');
-            document.getElementById('d01-table-info').innerText = `Mostrando ${data.length} registros`;
-            
-            const sorted = [...data].sort((a,b) => (b['Gasto últimos 12m (R$)']||0) - (a['Gasto últimos 12m (R$)']||0)).slice(0, 50);
-            
-            let html = '';
-            sorted.forEach(row => {
-                const tendClass = row['Tendência gasto'] === 'Crescendo' ? 'text-green-600 font-medium' : row['Tendência gasto'] === 'Caindo' ? 'text-red-600 font-medium' : 'text-gray-500';
-                
-                const comp = row['Comprador'] || '-';
-                const email = row['Email'] || '-';
-                const tel = row['Telefone'] || '-';
-
-                html += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">${row['Cliente'] || '-'}</div>
-                            <div class="text-[10px] text-gray-400">${row['CNPJ matriz']}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-800 text-xs">${comp}</div>
-                            <div class="text-[10px] text-gray-500">${tel} <br> ${email}</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-600">${row['Mercado'] || '-'}</td>
-                        <td class="px-4 py-3 text-xs text-gray-600">${row['Último pedido confirmado'] || '-'}</td>
-                        <td class="px-4 py-3 text-right font-medium text-gray-900">${formatMoney(row['Gasto últimos 12m (R$)'])}</td>
-                        <td class="px-4 py-3 text-center text-xs ${tendClass}">${row['Tendência gasto'] || '-'}</td>
-                        <td class="px-4 py-3 text-center text-xs text-gray-600">${row['Pedidos últimos 12m'] || 0}</td>
-                        <td class="px-4 py-3 text-center text-xs font-mono bg-gray-100 rounded">${row['Código R-F-M'] || '-'}</td>
-                        <td class="px-4 py-3 text-center font-bold text-stampare-navy">${row['Nota RFM'] || '-'}</td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function exportD01ToCSV() {
-            if (!state.d01.filtered || state.d01.filtered.length === 0) return;
-            
-            const exportData = state.d01.filtered.map(r => ({
-                'ID': r['CNPJ matriz'],
-                'Cliente': r['Cliente'],
-                'Comprador': r['Comprador'] || '',
-                'Telefone': r['Telefone'] || '',
-                'Email': r['Email'] || '',
-                'Mercado': r['Mercado'],
-                'Último Pedido': r['Último pedido confirmado'],
-                'Dias sem comprar': r['Dias desde último pedido'],
-                'Pedidos 12m': r['Pedidos últimos 12m'],
-                'Gasto 12m (R$)': r['Gasto últimos 12m (R$)'],
-                'Tendência Gasto': r['Tendência gasto'],
-                'Nota R': r['Nota R'],
-                'Nota F': r['Nota F'],
-                'Nota M': r['Nota M'],
-                'Código RFM': r['Código R-F-M'],
-                'Nota Final': r['Nota RFM']
-            }));
-
-            // Adiciona BOM (Byte Order Mark) para o Excel abrir caracteres latinos/acentos corretamente
-            const csv = Papa.unparse(exportData);
-            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' }); 
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'STAMPARE_Analise_RFM.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function resetFiltersD02() {
-            document.getElementById('filter-d02-mercado').value = 'Todos';
-            document.getElementById('filter-d02-status').value = 'Todos';
-            document.getElementById('filter-d02-cliente').value = '';
-            applyFiltersD02();
-        }
-
-        function applyFiltersD02() {
-            const mkt = document.getElementById('filter-d02-mercado').value;
-            const status = document.getElementById('filter-d02-status').value;
-            const search = document.getElementById('filter-d02-cliente').value.toLowerCase();
-
-            state.d02.filtered = state.d02.raw.filter(row => {
-                let pass = true;
-                if (mkt !== 'Todos' && row['Mercado'] !== mkt) pass = false;
-                if (status !== 'Todos' && row['Status de atividade'] !== status) pass = false;
-                
-                if (search) {
-                    const clientName = (row['Cliente'] || '').toLowerCase();
-                    const clientId = (row['CNPJ matriz'] || '').toLowerCase();
-                    if (!clientName.includes(search) && !clientId.includes(search)) {
-                        pass = false;
-                    }
-                }
-                return pass;
-            });
-
-            updateDashboard02();
-        }
-
-        function updateDashboard02() {
-            const data = state.d02.filtered;
-            
-            const total = data.length;
-            const ativos = data.filter(r => r['Status de atividade'] === 'Ativo').length;
-            const recentes = data.filter(r => r['Status de atividade'] === 'Inativo recente').length;
-            const antigos = data.filter(r => r['Status de atividade'] === 'Inativo antigo').length;
-            const insuf = data.filter(r => r['Status de atividade'] === 'Histórico insuficiente').length;
-            const confiavel = total - insuf;
-
-            document.getElementById('kpi-d02-total').innerText = formatNum(total);
-            document.getElementById('kpi-d02-ativos').innerText = formatNum(ativos);
-            document.getElementById('kpi-d02-recentes').innerText = formatNum(recentes);
-            document.getElementById('kpi-d02-antigos').innerText = formatNum(antigos);
-            document.getElementById('kpi-d02-insuf').innerText = formatNum(insuf);
-
-            document.getElementById('kpi-d02-ativos-pct').innerText = confiavel > 0 ? `${formatPct(ativos/confiavel)} do total confiável` : '0%';
-            document.getElementById('kpi-d02-recentes-pct').innerText = confiavel > 0 ? `${formatPct(recentes/confiavel)} do total confiável` : '0%';
-            document.getElementById('kpi-d02-antigos-pct').innerText = confiavel > 0 ? `${formatPct(antigos/confiavel)} do total confiável` : '0%';
-
-            renderChartD02_Status(ativos, recentes, antigos, insuf);
-            renderChartD02_Mercado(data);
-            renderChartD02_Scatter(data);
-            renderTableD02(data);
-        }
-
-        function renderChartD02_Status(a, r, an, i) {
-            destroyChart('chartD02-status');
-            const ctx = document.getElementById('chartD02-status').getContext('2d');
-            state.charts['chartD02-status'] = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ativo', 'Inativo Recente', 'Inativo Antigo', 'Histórico Insuficiente'],
-                    datasets: [{
-                        data: [a, r, an, i],
-                        backgroundColor: [colors.green, colors.orange, colors.red, colors.gray],
-                        borderWidth: 0
-                    }]
-                },
-                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-
-        function renderChartD02_Mercado(data) {
-            destroyChart('chartD02-mercado');
-            const mktObj = {};
-            data.forEach(r => {
-                const m = r['Mercado'] || 'Outros';
-                if(!mktObj[m]) mktObj[m] = { Ativo:0, 'Inativo recente':0, 'Inativo antigo':0, 'Histórico insuficiente':0 };
-                const st = r['Status de atividade'];
-                if(mktObj[m][st] !== undefined) mktObj[m][st]++;
-            });
-
-            const labels = Object.keys(mktObj);
-            const datasetA = labels.map(l => mktObj[l]['Ativo']);
-            const datasetR = labels.map(l => mktObj[l]['Inativo recente']);
-            const datasetAn = labels.map(l => mktObj[l]['Inativo antigo']);
-
-            const ctx = document.getElementById('chartD02-mercado').getContext('2d');
-            state.charts['chartD02-mercado'] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Ativo', data: datasetA, backgroundColor: colors.green },
-                        { label: 'Inat. Recente', data: datasetR, backgroundColor: colors.orange },
-                        { label: 'Inat. Antigo', data: datasetAn, backgroundColor: colors.red }
-                    ]
-                },
-                options: { 
-                    maintainAspectRatio: false, 
-                    scales: { x: { stacked: true }, y: { stacked: true } }
-                }
-            });
-        }
-
-        function renderChartD02_Scatter(data) {
-            destroyChart('chartD02-scatter');
-            
-            const validData = data.filter(r => r['Status de atividade'] !== 'Histórico insuficiente');
-            
-            const pointsA = [];
-            const pointsR = [];
-            const pointsAn = [];
-            let maxMedia = 10;
-
-            validData.forEach(r => {
-                const x = r['Média individual entre pedidos (dias)'] || 0;
-                const y = r['Dias sem comprar'] || 0;
-                if(x > maxMedia) maxMedia = x;
-
-                const pt = {x: x, y: y, raw: r};
-                if(r['Status de atividade'] === 'Ativo') pointsA.push(pt);
-                else if(r['Status de atividade'] === 'Inativo recente') pointsR.push(pt);
-                else pointsAn.push(pt);
-            });
-
-            const line1 = [{x:0, y:0}, {x:maxMedia, y:maxMedia}];
-            const line2 = [{x:0, y:0}, {x:maxMedia, y:maxMedia*2}];
-
-            const ctx = document.getElementById('chartD02-scatter').getContext('2d');
-            state.charts['chartD02-scatter'] = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [
-                        { label: 'Ativo', data: pointsA, backgroundColor: colors.green },
-                        { label: 'Inat. Recente', data: pointsR, backgroundColor: colors.orange },
-                        { label: 'Inat. Antigo', data: pointsAn, backgroundColor: colors.red },
-                        { label: 'L1: Y=X', data: line1, type: 'line', borderColor: '#CBD5E1', borderDash: [5,5], pointRadius: 0, fill: false },
-                        { label: 'L2: Y=2X', data: line2, type: 'line', borderColor: '#94A3B8', borderDash: [5,5], pointRadius: 0, fill: false }
-                    ]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { title: { display: true, text: 'Média Individual de Compra (Dias)' } },
-                        y: { title: { display: true, text: 'Dias Sem Comprar' } }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    if(ctx.datasetIndex >= 3) return ''; 
-                                    const row = ctx.raw.raw;
-                                    return `${row['Cliente']}: ${ctx.raw.y} dias sem comprar (Média: ${ctx.raw.x})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderTableD02(data) {
-            const tbody = document.getElementById('table-d02-body');
-            document.getElementById('d02-table-info').innerText = `Mostrando ${data.length} registros`;
-            
-            const orderMap = {'Inativo antigo': 1, 'Inativo recente': 2, 'Ativo': 3, 'Histórico insuficiente': 4};
-            
-            const sorted = [...data].sort((a,b) => {
-                const s1 = orderMap[a['Status de atividade']] || 9;
-                const s2 = orderMap[b['Status de atividade']] || 9;
-                if(s1 !== s2) return s1 - s2;
-                
-                const m1 = a['Média individual entre pedidos (dias)'] || 1;
-                const m2 = b['Média individual entre pedidos (dias)'] || 1;
-                const r1 = (a['Dias sem comprar'] || 0) / m1;
-                const r2 = (b['Dias sem comprar'] || 0) / m2;
-                return r2 - r1;
-            }).slice(0, 50);
-            
-            let html = '';
-            sorted.forEach(row => {
-                const st = row['Status de atividade'];
-                const stColor = st === 'Ativo' ? 'bg-green-100 text-green-800' : 
-                                st === 'Inativo recente' ? 'bg-orange-100 text-orange-800' : 
-                                st === 'Inativo antigo' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600';
-                
-                const dias = row['Dias sem comprar'] || 0;
-                const media = row['Média individual entre pedidos (dias)'] || 0;
-                let razao = 'N/A';
-                if(st !== 'Histórico insuficiente' && media > 0) {
-                    razao = (dias / media).toFixed(2) + 'x';
-                }
-
-                const comp = row['Comprador'] || '-';
-                const email = row['Email'] || '-';
-                const tel = row['Telefone'] || '-';
-
-                html += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3 text-xs">
-                            <span class="px-2 py-1 rounded-full font-medium ${stColor}">${st}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">${row['Cliente'] || '-'}</div>
-                            <div class="text-[10px] text-gray-400">${row['CNPJ matriz']}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-800 text-xs">${comp}</div>
-                            <div class="text-[10px] text-gray-500">${tel} <br> ${email}</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-600">${row['Mercado'] || '-'}</td>
-                        <td class="px-4 py-3 text-center text-xs text-gray-600">${row['Último pedido confirmado'] || '-'}</td>
-                        <td class="px-4 py-3 text-right font-medium text-gray-900">${dias}</td>
-                        <td class="px-4 py-3 text-right text-xs text-gray-600">${media > 0 ? media : 'N/A'}</td>
-                        <td class="px-4 py-3 text-right text-xs font-mono bg-gray-50">${razao}</td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function exportD02ToCSV() {
-            if (!state.d02.filtered || state.d02.filtered.length === 0) return;
-            
-            const exportData = state.d02.filtered.map(r => ({
-                'ID': r['CNPJ matriz'],
-                'Cliente': r['Cliente'],
-                'Comprador': r['Comprador'] || '',
-                'Telefone': r['Telefone'] || '',
-                'Email': r['Email'] || '',
-                'Status de atividade': r['Status de atividade'],
-                'Mercado': r['Mercado'],
-                'Último Pedido': r['Último pedido confirmado'],
-                'Dias sem comprar': r['Dias sem comprar'],
-                'Histórico Pedidos': r['Pedidos confirmados histórico'],
-                'Média Indiv. (dias)': r['Média individual entre pedidos (dias)']
-            }));
-
-            // Adiciona BOM (Byte Order Mark) para o Excel abrir caracteres latinos/acentos corretamente
-            const csv = Papa.unparse(exportData);
-            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' }); 
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'STAMPARE_Analise_Risco.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
+        });
     </script>
 </body>
 </html>
