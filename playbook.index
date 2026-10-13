@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playbook Comercial - Stampare</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #00305C;
+            --primary-dark: #001f3d;
+            --accent-gold: #DDBD8E;
+            --accent-red: #A30000;
+            --bg-white: #FFFFFF;
+            --text-dark: #222222;
+            --text-light: #555555;
+            --gray-light: #F7F9FC;
+            
+            --font-main: 'Poppins', sans-serif;
+            --font-deco: 'Playfair Display', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E5E7EB;
+            font-family: var(--font-main);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background-color: var(--bg-white);
+            margin: 10mm auto;
+            position: relative;
+            page-break-after: always;
+            padding: 25mm 20mm;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media print {
+            body { background: none; }
+            .page { 
+                margin: 0; 
+                box-shadow: none; 
+                height: auto;
+                min-height: 297mm;
+                page-break-after: always;
+                border: none;
+                display: block;
+            }
+            .page-cover, .page-backcover {
+                display: flex;
+            }
+        }
+
+        .page-cover {
+            background-color: var(--primary);
+            color: var(--bg-white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40mm 20mm;
+        }
+
+        .page-cover .logo {
+            max-width: 250px;
+            margin-bottom: 50px;
+        }
+
+        .page-cover h1 {
+            font-family: var(--font-deco);
+            font-size: 38pt;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            line-height: 1.2;
+        }
+
+        .page-cover h2 {
+            font-weight: 300;
+            font-size: 16pt;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin: 0;
+            color: #FFFFFF;
+            opacity: 0.9;
+        }
+
+        .page-backcover {
+            background-color: var(--primary);
+            color: var(--bg-white);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .page-backcover .logo-large {
+            max-width: 350px;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--primary);
+            margin-top: 0;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 18pt;
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        
+        h2:first-child { margin-top: 0; }
+
+        h3 {
+            font-size: 14pt;
+            color: var(--primary-dark);
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            font-size: 10.5pt;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .funnel-container {
+            background-color: var(--gray-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+            page-break-inside: avoid;
+        }
+
+        .funnel-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 11pt;
+        }
+
+        .funnel-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step {
+            background-color: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 9pt;
+            font-weight: 600;
+        }
+
+        .arrow {
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 12pt;
+        }
+
+        .script-box {
+            background-color: #FAFAFA;
+            border-left: 4px solid var(--accent-gold);
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            page-break-inside: avoid;
+        }
+
+        .script-box p {
+            margin: 0;
+            font-style: italic;
+            font-size: 11pt;
+            color: var(--primary-dark);
+            font-weight: 500;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .script-context {
+            font-size: 9pt;
+            color: var(--accent-red);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 9.5pt;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: var(--bg-white);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 9pt;
+            letter-spacing: 0.5px;
+        }
+
+        tr:nth-child(even) { background-color: var(--gray-light); }
+        tr:last-child td { border-bottom: 2px solid var(--primary); }
+        
+        .td-script .script-box {
+            margin: 0;
+            padding: 10px;
+            font-size: 9pt;
+        }
+        .td-script .script-box p { font-size: 10pt; }
+
+        ul, ol {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            color: var(--text-light);
+            font-size: 10.5pt;
+        }
+        li { margin-bottom: 8px; }
+        
+        .image-reference {
+            display: block;
+            background: var(--gray-light);
+            padding: 10px;
+            text-align: center;
+            font-size: 9pt;
+            color: var(--text-light);
+            border: 1px dashed #CCC;
+            border-radius: 6px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        .image-reference img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .content-area { margin-top: 5mm; }
+        
+        .avoid-break { page-break-inside: avoid; }
+        .force-break { page-break-before: always; }
+
+    </style>
+</head>
+<body>
+
+    <div class="page page-cover">
+        <img src="https://iili.io/nWZpc21.png" alt="Stampare Logo" class="logo">
+        <h1>Playbook<br>Comercial</h1>
+        <h2>Máquina de Vendas</h2>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>1. Organização Recomendada dos Funis</h2>
+            
+            <div class="funnel-container">
+                <div class="funnel-title">Funil 1 — Novos negócios</div>
+                <div class="funnel-flow">
+                    <span class="step">Contato</span><span class="arrow">→</span>
+                    <span class="step">Apresentação de Proposta</span><span class="arrow">→</span>
+                    <span class="step">Negociação</span><span class="arrow">→</span>
+                    <span class="step">Peça Piloto</span><span class="arrow">→</span>
+                    <span class="step">Aprovação</span><span class="arrow">→</span>
+                    <span class="step" style="background-color: var(--primary-dark);">Fechamento</span><span class="arrow">→</span>
+                    <span class="step" style="background-color: #27ae60;">Ganho</span>
+                </div>
+            </div>
+
+            <div class="funnel-container">
+                <div class="funnel-title">Funil 2 — Recompra e reativação</div>
+                <div class="funnel-flow">
+                    <span class="step">Contato</span><span class="arrow">→</span>
+                    <span class="step">Apresentação de Proposta</span><span class="arrow">→</span>
+                    <span class="step">Negociação</span><span class="arrow">→</span>
+                    <span class="step">Aprovação</span><span class="arrow">→</span>
+                    <span class="step" style="background-color: var(--primary-dark);">Fechamento</span><span class="arrow">→</span>
+                    <span class="step" style="background-color: #27ae60;">Ganho</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>2. Campos Obrigatórios de Entrada</h2>
+            
+            <div class="avoid-break">
+                <h3>2.1. Dados preenchidos pelo lead</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome do campo</th>
+                            <th>Tipo de campo</th>
+                            <th>O que deve conter</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Nome completo</strong></td>
+                            <td>Texto curto</td>
+                            <td>Nome e sobrenome do contato</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Empresa</strong></td>
+                            <td>Texto curto</td>
+                            <td>Nome da empresa</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CNPJ</strong></td>
+                            <td>Texto com máscara</td>
+                            <td>CNPJ no formato 00.000.000/0000-00, com validação</td>
+                        </tr>
+                        <tr>
+                            <td><strong>E-mail corporativo</strong></td>
+                            <td>E-mail</td>
+                            <td>Endereço de e-mail profissional válido</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telefone / WhatsApp</strong></td>
+                            <td>Telefone com máscara</td>
+                            <td>Número com DDD; incluir DDI quando necessário</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Finalidade do pedido</strong></td>
+                            <td>Seleção única</td>
+                            <td>Para equipe; Revenda; Brinde promocional; Eventos / feiras</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quantidade de peças</strong></td>
+                            <td>Seleção única</td>
+                            <td>1 a 30; 31 a 50; 51 a 100; 101 a 500; Acima de 500</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prazo desejado para recebimento</strong></td>
+                            <td>Seleção única</td>
+                            <td>Até 15 dias; De 16 a 30 dias; De 31 a 45 dias; De 46 a 60 dias; Acima de 60 dias</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="avoid-break">
+                <h3>2.2. Rastreamento preenchido automaticamente</h3>
+                <p>Esses campos ficam ocultos no formulário. O Gestor de tráfego configura.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome do campo</th>
+                            <th>Tipo de campo</th>
+                            <th>O que deve conter</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>UTM Source</strong></td><td>Texto curto — oculto</td><td>Origem do tráfego recebida no link</td></tr>
+                        <tr><td><strong>UTM Medium</strong></td><td>Texto curto — oculto</td><td>Meio de aquisição recebido no link</td></tr>
+                        <tr><td><strong>UTM Campaign</strong></td><td>Texto curto — oculto</td><td>Identificação da campanha</td></tr>
+                        <tr><td><strong>UTM Term</strong></td><td>Texto curto — oculto</td><td>Termo ou parâmetro de segmentação, quando enviado</td></tr>
+                        <tr><td><strong>UTM Content</strong></td><td>Texto curto — oculto</td><td>Identificação do conteúdo ou variação do anúncio</td></tr>
+                        <tr><td><strong>ID do anúncio — Ad ID</strong></td><td>Texto curto — oculto</td><td>Identificador do anúncio</td></tr>
+                        <tr><td><strong>ID do conjunto / grupo — Adset ID</strong></td><td>Texto curto — oculto</td><td>Identificador do conjunto ou grupo de anúncios</td></tr>
+                        <tr><td><strong>ID da campanha — Campaign ID</strong></td><td>Texto curto — oculto</td><td>Identificador da campanha</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>3. Automações CRM Marketing</h2>
+
+            <div class="avoid-break">
+                <h3>3.1. Parâmetros oficiais de RFM</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nota</th>
+                            <th>R — Dias desde a última compra</th>
+                            <th>F — Quantidade de pedidos</th>
+                            <th>M — Gasto confirmado nos últimos 12 meses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>1</strong></td><td>Acima de 292 dias</td><td>0 ou 1</td><td>Até R$ 4.968,90</td></tr>
+                        <tr><td><strong>2</strong></td><td>De 219 a 292 dias</td><td>2</td><td>Acima de R$ 4.968,90 até R$ 8.512,00</td></tr>
+                        <tr><td><strong>3</strong></td><td>De 146 a 218 dias</td><td>3</td><td>Acima de R$ 8.512,00 até R$ 15.979,30</td></tr>
+                        <tr><td><strong>4</strong></td><td>De 73 a 145 dias</td><td>4</td><td>Acima de R$ 15.979,30 até R$ 40.953,36</td></tr>
+                        <tr><td><strong>5</strong></td><td>Até 72 dias</td><td>5 ou mais</td><td>Acima de R$ 40.953,36</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="avoid-break">
+                <h3>3.2. Status de atividade</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Regra definida</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Ativo</strong></td><td>Dias sem comprar até a média individual</td></tr>
+                        <tr><td><strong>Inativo recente</strong></td><td>Acima da média e até o dobro dela</td></tr>
+                        <tr><td><strong>Inativo antigo</strong></td><td>Acima do dobro da média</td></tr>
+                        <tr><td><strong>Histórico insuficiente</strong></td><td>Menos de dois pedidos confirmados</td></tr>
+                    </tbody>
+                </table>
+                <p>Modelo base de planilha que precisa ser alimentada: <a href="https://docs.google.com/spreadsheets/d/1DFOajH59k5YIQVzbHtxwR5ZTQIzg6i4cZ7RW6QizdDM/edit?usp=sharing" style="color: var(--primary);">Acessar Documento</a></p>
+                <p>Modelo de visualização recomendada de dash: <a href="https://orssoluan.github.io/stampare/dashboard" style="color: var(--primary);">Acessar Dashboard</a></p>
+                <p>Objetivo final: arquitetar a estrutura de base de dados para que haja a possibilidade de criar via automação, tarefas no CRM de vendas no Funil 2 — Recompra e reativação com atividades para os vendedores e também disparos de e-mail e WhatsApp para clientes.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h3>3.3. MATRIZ DE AUTOMAÇÕES E TAREFAS PARA OS VENDEDORES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Status / situação da carteira</th>
+                        <th style="width: 15%;">Canais</th>
+                        <th style="width: 35%;">Ações e automações</th>
+                        <th style="width: 35%;">Script Sugerido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Ativos</strong></td>
+                        <td>WhatsApp ; e-mail</td>
+                        <td>Disparo automático de ofertas exclusivas ou lançamentos - Ex: um novo tecido uma nova tecnlogia</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5 dias antes de virar inativo recente</strong></td>
+                        <td>Ligação ou Whatsapp</td>
+                        <td>Criação de um novo card no Funil 2 - Recompra e reativação para o vendedor atender</td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Oi, [Nome]! Tudo bem? Na última compra, vocês pediram [Categoria]. Já tem previsão de um novo pedido ou alguma demanda diferente chegando? Se fizer sentido, posso atualizar a cotação para vocês se planejarem.”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>5 dias antes de virar inativo antigo</strong></td>
+                        <td>Ligação ou Whatsapp</td>
+                        <td>Criação de um novo card no Funil 2 - Recompra e reativação para o vendedor atender</td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Oi, [Nome]! Tudo bem? Faz um tempo desde o último pedido e queria entender como está a demanda da [Empresa]. O planejamento mudou ou ficou algum ponto do nosso atendimento que precisamos resolver? Quero entender para ver como podemos ajudar.”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inativos antigos</strong></td>
+                        <td>WhatsApp ; e-mail</td>
+                        <td>Disparo automático mensais de catálogos, cases de sucesso de empresas do mesmo setor. Se clicar em algo, volta para o pipeline</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>4. O NOVO PADRÃO DE PROPOSTA EM PDF</h2>
+            <p>A proposta precisa permitir que o decisor que não participou da conversa no Whatsapp ou ligação, seja influenciado.</p>
+            
+            <h3>Estrutura recomendada do PDF</h3>
+            
+            <div class="avoid-break">
+                <p><strong>1. Resumo do que o lead informou de necessidade.</strong></p>
+                <div class="script-box">
+                    <p>“Vocês precisam de [quantidade e categoria] para [aplicação], com entrega desejada em [data]. Os pontos mais importantes são [critérios].”</p>
+                </div>
+            </div>
+
+            <p><strong>2. Apresentar opções de produtos</strong></p>
+
+            <div class="avoid-break">
+                <p><strong>3. Explicar como vai funcionar a peça piloto</strong></p>
+                <div class="script-box">
+                    <p>“Antes do fechamento do pedido de produção, enviaremos uma peça piloto personalizada para você sentir com as próprias mãos e aprovar.”</p>
+                </div>
+            </div>
+
+            <p><strong>4. Utilizar cliente real, autorizado e semelhante à aplicação do comprador para gerar autoridade e trazer tempo de empresa</strong></p>
+
+            <div class="avoid-break">
+                <p><strong>5. Nessa última etapa, aí sim, detalhar o orçamento como já é feito hoje em dia.</strong></p>
+                <div class="image-reference">
+                    <img src="https://iili.io/nWs6jbn.png" alt="Exemplo de Orçamento" style="max-height: 200px;">
+                </div>
+            </div>
+
+            <div class="avoid-break">
+                <p><strong>6. Próximo compromisso (Fazer um texto para enviar no Whatsapp junto com o doc orçamento)</strong></p>
+                <div class="script-box">
+                    <p>“Você aprovando o orçamento, já podemos montar a peça piloto para envio! Podemos combinar um retorno em [data]?”</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>5. MATRIZ DE OBJEÇÕES</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Objeção</th>
+                        <th style="width: 65%;">Condução sugerida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>“Meu fornecedor faz mais barato.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Entendi. As duas propostas consideram as mesmas especificações, quantidades e prazos?”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Já tenho fornecedor.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Claro. Tem alguma demanda ou condição que hoje vocês gostariam de melhorar?”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Só vou fazer um pedido pequeno.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Tudo bem. Esse pedido é para uma necessidade pontual ou para avaliar uma parceria? Vou conferir a melhor condição dentro da nossa viabilidade.”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Quero ver como fica antes de pagar.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Podemos avaliar o caminho de aprovação mais adequado. Vou te explicar o que conseguimos mostrar por peça piloto e quais são as condições de cada etapa.”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Está caro.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“O que pesa mais: o valor total, a condição de pagamento ou alguma dúvida sobre a solução?”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Preciso para uma data muito próxima.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Vou confirmar a viabilidade antes de te prometer. Existe alguma flexibilidade na quantidade ou na entrega?”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Preciso da aprovação do gestor.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“O que ele precisa avaliar? Posso deixar essas informações organizadas para facilitar.”</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>“Me manda que eu vejo.”</strong></td>
+                        <td class="td-script">
+                            <div class="script-box">
+                                <p>“Claro. Qual é o principal ponto que você vai avaliar? Podemos combinar um retorno em [dia]?”</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="content-area">
+            <h2>6. ROTINAS COM OS VENDEDORES</h2>
+            <p>A gestão não deve se limitar a cobrar ligações, nem olhar apenas o faturamento no fim do mês. Deve conectar atividade, avanço, conversão e saúde da carteira.</p>
+
+            <div class="avoid-break">
+                <h3>Rotina diária — até 15 minutos</h3>
+                <p><strong>Foco:</strong> prioridades e impedimentos</p>
+                <p><strong>Perguntas:</strong></p>
+                <ul>
+                    <li>Qual atendimento ou retorno vence hoje?</li>
+                    <li>Qual negociação precisa avançar?</li>
+                    <li>O que está impedindo esse avanço?</li>
+                    <li>Qual conta relevante precisa de atenção?</li>
+                </ul>
+            </div>
+
+            <div class="avoid-break">
+                <h3>Rotina semanal — até uma hora</h3>
+                <p><strong>Foco:</strong> qualidade e movimento dos funis.</p>
+                <p><strong>Revisar:</strong></p>
+                <ul>
+                    <li>Oportunidades sem próxima ação.</li>
+                    <li>Propostas sem retorno combinado.</li>
+                    <li>Pilotos aguardando produção, ajuste ou aprovação.</li>
+                    <li>Contas relevantes em declínio ou inatividade.</li>
+                    <li>Um caso real para orientação do time.</li>
+                    <li>Bater taxa de MQL, SQL, Ganho e Ritmo para bater meta com visão de funil reverso</li>
+                </ul>
+                <div class="image-reference" style="margin-top: 10px;">
+                    <a href="https://docs.google.com/spreadsheets/d/1Q-IN5EQrLKbFcmwo6Xcrx5G1NOzILIp6N5Jnmv15iw8/edit?usp=sharing" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">https://docs.google.com/spreadsheets/d/1Q-IN5EQrLKbFcmwo6Xcrx5G1NOzILIp6N5Jnmv15iw8/edit?usp=sharing</a>
+                    <br>
+                    <img src="https://iili.io/nWLoL0b.png" alt="Funil Reverso" style="max-height: 150px; margin-top:10px;">
+                </div>
+            </div>
+
+            <div class="avoid-break">
+                <h3>Rotina mensal — até uma hora</h3>
+                <p><strong>Analisar:</strong></p>
+                <ul>
+                    <li>Resultado versus metas.</li>
+                    <li>Conversões por origem e tipo de venda.</li>
+                    <li>Necessidades de desenvolvimento.</li>
+                </ul>
+            </div>
+
+            <div class="avoid-break force-break">
+                <h2>7. INDICADORES, RELATÓRIOS PARA REUNIÃO SEMANAL</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Cálculo ou definição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Taxa de MQL</strong></td><td>Apresentação de proposta ÷ leads</td></tr>
+                        <tr><td><strong>Taxa de SQL</strong></td><td>Peça piloto ÷ Apresentação de proposta</td></tr>
+                        <tr><td><strong>Ganho</strong></td><td>Vendas</td></tr>
+                        <tr><td><strong>Ciclo de venda</strong></td><td>Tempo entre o marco inicial definido e o ganho</td></tr>
+                        <tr><td><strong>CAC</strong></td><td>Novos clientes ÷ investimento em midia</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page page-backcover" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <img src="https://iili.io/nWZpc21.png" alt="Stampare Logo" class="logo-large">
+    </div>
+
+</body>
+</html>
